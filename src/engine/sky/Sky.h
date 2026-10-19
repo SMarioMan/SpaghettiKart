@@ -26,6 +26,7 @@ public:
     std::vector<std::unique_ptr<SkyActor>>& GetSkyActors();
 private:
     Mtx mSkyboxMatrix;
+    Mtx mSkyboxProjection;
     static Vtx mSkyboxScreenOne[8];
     static Vtx mSkyboxScreenTwo[8];
     static Vtx mSkyboxScreenThree[8];

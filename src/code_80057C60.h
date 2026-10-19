@@ -45,6 +45,7 @@ void render_snowing_effect(s32);
 void func_80058BF4(void);
 void func_80058C20(u32);
 void render_hud(u32);
+void render_local_multiplayer_hud(s32 playerId);
 void func_80058F48(void);
 void func_80058F78(void);
 void func_80059AC8(void);

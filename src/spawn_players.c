@@ -1010,7 +1010,7 @@ void spawn_and_set_player_spawns(void) {
                 D_80165230[3] = 0.0f;
                 D_80165210[3] = 200.0f;
                 D_80165230[0] = 200.0f;
-                if (gPlayerCountSelection1 == 4) {
+                if (gPlayerCountSelection1 >= 4) {
                     spawn_players_4p_battle(D_80165210, D_80165230, temp);
                 } else {
                     spawn_players_3p_battle(D_80165210, D_80165230, temp);
@@ -1040,7 +1040,7 @@ void spawn_and_set_player_spawns(void) {
                 D_80165230[1] = -400.0f;
                 D_80165230[2] = 0.0f;
                 D_80165230[3] = 0.0f;
-                if (gPlayerCountSelection1 == 4) {
+                if (gPlayerCountSelection1 >= 4) {
                     spawn_players_4p_battle(D_80165210, D_80165230, temp);
                 } else {
                     spawn_players_3p_battle(D_80165210, D_80165230, temp);
@@ -1070,7 +1070,7 @@ void spawn_and_set_player_spawns(void) {
                 D_80165230[1] = -160.0f;
                 D_80165230[2] = 0.0f;
                 D_80165230[3] = 0.0f;
-                if (gPlayerCountSelection1 == 4) {
+                if (gPlayerCountSelection1 >= 4) {
                     spawn_players_4p_battle(D_80165210, D_80165230, temp);
                 } else {
                     spawn_players_3p_battle(D_80165210, D_80165230, temp);
@@ -1100,7 +1100,7 @@ void spawn_and_set_player_spawns(void) {
                 D_80165230[1] = -575.0f;
                 D_80165230[2] = 0.0f;
                 D_80165230[3] = 0.0f;
-                if (gPlayerCountSelection1 == 4) {
+                if (gPlayerCountSelection1 >= 4) {
                     spawn_players_4p_battle(D_80165210, D_80165230, temp);
                 } else {
                     spawn_players_3p_battle(D_80165210, D_80165230, temp);
@@ -1146,6 +1146,27 @@ void spawn_and_set_player_spawns(void) {
                          gCharacterSelections[i], i < gPlayerCountSelection1
                              ? (PLAYER_EXISTS | PLAYER_START_SEQUENCE | PLAYER_HUMAN)
                              : 0);
+        }
+        D_80164A28 = 0;
+        func_80039AE4();
+    }
+
+    if (gPlayerCountSelection1 > 4 && gModeSelection == BATTLE) {
+        // Retain each arena's four safe native spawn anchors. The second player
+        // at each anchor starts beside the first, facing the same direction.
+        for (s32 i = 0; i < NUM_PLAYERS; i++) {
+            s32 anchor = i % 4;
+            f32 x = gPlayers[anchor].pos[0];
+            f32 z = gPlayers[anchor].pos[2];
+            f32 groundY = gPlayers[anchor].pos[1] - gPlayers[anchor].boundingBoxSize;
+            s16 yaw = gPlayers[anchor].rotation[1];
+            if (i >= 4) {
+                x += coss(yaw) * 35.0f;
+                z -= sins(yaw) * 35.0f;
+            }
+            spawn_player(&gPlayers[i], i, x, z, groundY, yaw, gCharacterSelections[i],
+                         i < gPlayerCountSelection1
+                             ? (PLAYER_EXISTS | PLAYER_START_SEQUENCE | PLAYER_HUMAN) : 0);
         }
         D_80164A28 = 0;
         func_80039AE4();

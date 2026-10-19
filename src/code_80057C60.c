@@ -32,6 +32,7 @@
 #include "objects.h"
 #include "bomb_kart.h"
 #include "menus.h"
+#include "menu_items.h"
 #include <assets/textures/other_textures.h>
 #include "spawn_players.h"
 #include "sounds.h"
@@ -806,7 +807,7 @@ void func_800590D4(void) {
 }
 
 void func_800591B4(void) {
-    if (gPlayerCountSelection1 > 4) return; // Extended viewports use the PC HUD.
+    if (gPlayerCountSelection1 > 4) return; // Extended HUDs render within each viewport.
 
     if ((gHUDDisable == 0) && (D_800DC5B8 != 0)) {
         func_80057C60();
@@ -902,6 +903,63 @@ void render_hud_2p_vertical_player_two(void) {
     if (gHUDDisable == 0) {
         draw_simplified_hud(PLAYER_TWO);
     }
+}
+
+// Texture rectangles use full-screen coordinates. Use native textured geometry
+// here so both the HUD and its clipping follow the player's viewport.
+static Vtx sExtendedLapWord[4] = {
+    {{{-16, -4, 0}, 0, {0, 0}, {255, 255, 255, 255}}},
+    {{{16, -4, 0}, 0, {1024, 0}, {255, 255, 255, 255}}},
+    {{{16, 4, 0}, 0, {1024, 256}, {255, 255, 255, 255}}},
+    {{{-16, 4, 0}, 0, {0, 256}, {255, 255, 255, 255}}},
+};
+static Vtx sExtendedLapCount[4] = {
+    {{{-16, -8, 0}, 0, {0, 0}, {255, 255, 255, 255}}},
+    {{{16, -8, 0}, 0, {1024, 0}, {255, 255, 255, 255}}},
+    {{{16, 8, 0}, 0, {1024, 512}, {255, 255, 255, 255}}},
+    {{{-16, 8, 0}, 0, {0, 512}, {255, 255, 255, 255}}},
+};
+static void draw_extended_lap_texture(s32 x, s32 y, u8* texture, Vtx* quad, s32 height) {
+    func_80042330(x, y, 0, 1.0f);
+    gDPPipeSync(gDisplayListHead++);
+    gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+    gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+    gDPSetCombineMode(gDisplayListHead++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gSPClearGeometryMode(gDisplayListHead++, G_ZBUFFER | G_LIGHTING | G_CULL_BOTH);
+    gSPTexture(gDisplayListHead++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+    load_texture_block_rgba16_mirror(texture, 32, height);
+    gSPVertex(gDisplayListHead++, (uintptr_t) quad, 4, 0);
+    gSP2Triangles(gDisplayListHead++, 0, 1, 2, 0, 0, 2, 3, 0);
+    gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
+}
+
+// Native HUD geometry and textures, projected into the current player's pane.
+void render_local_multiplayer_hud(s32 playerId) {
+    if (gDemoMode || gHUDDisable || !CVarGetInteger("gDrawHUD", true)) return;
+    hud_player* hud = &playerHUD[playerId];
+    gSPDisplayList(gDisplayListHead++, D_0D0076F8);
+    set_matrix_hud_screen();
+    hud->itemBoxX = 272;
+    hud->itemBoxY = 28;
+    hud->slideItemBoxX = hud->slideItemBoxY = 0;
+    hud->unknownScaling = 0.75f;
+    func_8004E6C4(playerId);
+    if (gModeSelection != BATTLE) {
+        hud->rankX = 38;
+        hud->rankY = 208;
+        hud->slideRankX = hud->slideRankY = 0;
+        hud->rankScaling = 0.25f;
+        func_8004E800(playerId);
+        draw_extended_lap_texture(228, 202, (u8*) common_texture_hud_lap, sExtendedLapWord, 8);
+        s32 lap = hud->alsoLapCount;
+        if (lap < 0) lap = 0;
+        if (lap > 2) lap = 2;
+        draw_extended_lap_texture(252, 216, (u8*) gHudLapTextures[lap], sExtendedLapCount, 16);
+    }
+    char label[] = "1P";
+    label[0] += playerId;
+    set_text_color(TEXT_YELLOW);
+    print_text_mode_1(16, 24, label, 0, 0.65f, 0.65f);
 }
 
 void render_hud_lap_3p_4p(s32 playerId) {
@@ -6520,6 +6578,11 @@ void func_8006DD3C(Player* player, s8 playerId, s8 screenId) {
 }
 
 void func_8006E058(void) {
+    if (gPlayerCountSelection1 > 4) {
+        for (s32 i = 0; i < gPlayerCountSelection1; i++)
+            func_8006E420(&gPlayers[i], i, 0);
+        return;
+    }
     switch (gActiveScreenMode) {
         case SCREEN_MODE_1P:
             switch (gModeSelection) {

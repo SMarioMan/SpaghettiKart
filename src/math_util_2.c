@@ -687,7 +687,7 @@ void func_80042330(s32 x, s32 y, u16 angle, f32 scale) {
     Mat4 matrix;
     // printf("panel %d %d %d\n", x, (s32)OTRGetDimensionFromLeftEdge(x), (s32)OTRGetDimensionFromLeftEdge(0));
 
-    if (gHUDModes != 2) {
+    if (gHUDModes != 2 && gPlayerCountSelection1 <= 4) {
         if (x < (SCREEN_WIDTH / 2)) {
             x = (s32) OTRGetDimensionFromLeftEdge(x);
         } else {
@@ -739,12 +739,14 @@ void func_80042330_portrait(s32 x, s32 y, u16 angle, f32 scale, UNUSED s16 lapCo
 void func_80042330_wide(s32 x, s32 y, u16 angle, f32 scale) {
     Mat4 matrix;
 
-    if (x < (SCREEN_WIDTH / 2)) {
-        x = (s32) OTRGetDimensionFromLeftEdge(x);
-    } else {
-        x = (s32) OTRGetDimensionFromRightEdge(x);
+    // Extended HUD coordinates are already local to the current viewport.
+    if (gPlayerCountSelection1 <= 4) {
+        if (x < (SCREEN_WIDTH / 2)) {
+            x = (s32) OTRGetDimensionFromLeftEdge(x);
+        } else {
+            x = (s32) OTRGetDimensionFromRightEdge(x);
+        }
     }
-
     mtxf_translation_x_y_rotate_z_scale_x_y(matrix, x, y, angle, scale);
     // convert_to_fixed_point_matrix(&gGfxPool->mtxHud[gMatrixHudCount], matrix);
     // gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(&gGfxPool->mtxHud[gMatrixHudCount++]),

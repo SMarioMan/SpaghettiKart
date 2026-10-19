@@ -7,12 +7,20 @@ import subprocess
 import sys
 
 EXPECTED = {
+    "sky": ["PASS: sky horizon remains stable in every yaw quadrant across eight cameras"],
+    "battle": [
+        *[f"PASS: {count}-player battle arena {count-5}, all players and balloons active" for count in (5, 6, 7, 8)],
+        "PASS: player eight wins after seven eliminations",
+        "PASS: eight-player battle results",
+    ],
     "counts": [f"SMOKE: {count} players, 360 frames" for count in (8, 7, 6, 5)],
+    "baseline": [f"SMOKE: {count} players, 360 frames" for count in (4, 1)],
     "menus": [
         "PASS: main menu selects 5, 6, 7, 8 and stops at 8",
         "PASS: all eight characters ready",
         "PASS: eight players proceed to track selection",
     ],
+    "menus_battle": ["PASS: eight players select Battle and proceed to arena selection"],
     "workflow": [
         "PASS: player 8 pause and shared resume",
         "PASS: player 8 mushroom input",

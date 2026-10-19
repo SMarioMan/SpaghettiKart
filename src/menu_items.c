@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "audio/external.h"
 #include "render_objects.h"
+#include "update_objects.h"
 #include "replays.h"
 #include <assets/models/common_data.h>
 #include "textures.h"
@@ -6584,7 +6585,7 @@ void render_menus(MenuItem* arg0) {
             case CHARACTER_SELECT_MENU_3P_CURSOR:
             case CHARACTER_SELECT_MENU_4P_CURSOR:
                 temp_a0 = arg0->type - CHARACTER_SELECT_MENU_1P_CURSOR;
-                if (gCharacterGridSelections[temp_a0]) {
+                if (gPlayerCount <= 4 && gCharacterGridSelections[temp_a0]) {
                     if (gCharacterGridIsSelected[temp_a0] == 0) {
                         temp_t2 = 0x000000FF;
                     } else {
@@ -7058,10 +7059,17 @@ void func_800A0FA4(MenuItem* arg0, s32 arg1) {
         char label[] = "5P GAME";
         label[0] = '0' + gPlayerCount;
         gDisplayListHead = draw_box_fill(gDisplayListHead, arg0->column + 1, arg0->row + 1,
-                                         arg0->column + 62, arg0->row + 52, 20, 30, 50, 255);
-        set_text_color(TEXT_YELLOW);
-        print_text1_center_mode_1(arg0->column + 32, arg0->row + 25, label, 0, 0.65f, 0.65f);
-        print_text1_center_mode_1(arg0->column + 32, arg0->row + 78, "VS", 0, 0.65f, 0.65f);
+                                         arg0->column + 62, arg0->row + 52, 0, 0, 0, 255);
+        for (s32 i = 0; i < gPlayerCount; i++) {
+            func_80047910(arg0->column + 10 + (i % 4) * 14, arg0->row + 12 + (i / 4) * 16,
+                          0, 0.375f, (u8*) gPortraitTLUTs[i], gPortraitTextures[i],
+                          D_0D005AE0, 32, 32, 32, 32);
+        }
+        set_text_color(TEXT_GREEN);
+        print_text1_center_mode_1(arg0->column + 32, arg0->row + 49, label, 0, 0.65f, 0.65f);
+        // Skip the four-player card image, retaining the native mode rows.
+        gDisplayListHead = render_menu_textures(gDisplayListHead, &seg2_menu_4p_column[1], arg0->column, arg0->row);
+        gDisplayListHead = render_menu_textures(gDisplayListHead, D_800E8234[7], arg0->column, arg0->row);
         return;
     }
     switch (arg0->state) {
@@ -8701,41 +8709,43 @@ void func_800A638C(MenuItem* arg0) {
     s32 var_s1;
     UNUSED s8** var_s2;
 
-    if (arg0->state == 0) {
-        gDisplayListHead = draw_box_wide(gDisplayListHead, 0, 0, 0x0000013F, 0x000000EF, 0, 0, 0, arg0->param1);
-        set_text_color(TEXT_BLUE_GREEN_RED_CYCLE_2);
-        gDPSetPrimColor(gDisplayListHead++, 0, 0, 0x00, 0x00, 0x00, (arg0->param1 * 0xFF) / 100);
-        print_text1_center_mode_2(0x000000A0, arg0->row + 0x1E, D_800E7778[gModeSelection / 3], 0, 1.0f, 1.0f);
-    } else {
-        gDisplayListHead = draw_box_wide(gDisplayListHead, 0, 0, 0x0000013F, 0x000000EF, 0, 0, 0, 0x00000064);
-        set_text_color(TEXT_BLUE_GREEN_RED_CYCLE_2);
-        print_text1_center_mode_1(0x000000A0, arg0->row + 0x1E, D_800E7778[gModeSelection / 3], 0, 1.0f, 1.0f);
-    }
-    switch (arg0->state) {
-        default:
-            var_a1 = 0x000000FF;
-            break;
-        case 0:
-        case 1:
-            var_a1 = 0;
-            break;
-        case 2:
-            var_a1 = arg0->param1;
-            break;
-    }
-    gDPSetPrimColor(gDisplayListHead++, 0, 0, 0x00, 0x00, 0x00, var_a1);
-    switch (gPlayerCount) {
-        case 2:
-            func_800A69C8(arg0);
-            break;
-        case 3:
-            func_800A6BEC(arg0);
-            break;
-        case 4:
-            func_800A6CC0(arg0);
-            break;
-        default:
-            break;
+    if (gPlayerCount <= 4) {
+        if (arg0->state == 0) {
+            gDisplayListHead = draw_box_wide(gDisplayListHead, 0, 0, 0x0000013F, 0x000000EF, 0, 0, 0, arg0->param1);
+            set_text_color(TEXT_BLUE_GREEN_RED_CYCLE_2);
+            gDPSetPrimColor(gDisplayListHead++, 0, 0, 0x00, 0x00, 0x00, (arg0->param1 * 0xFF) / 100);
+            print_text1_center_mode_2(0x000000A0, arg0->row + 0x1E, D_800E7778[gModeSelection / 3], 0, 1.0f, 1.0f);
+        } else {
+            gDisplayListHead = draw_box_wide(gDisplayListHead, 0, 0, 0x0000013F, 0x000000EF, 0, 0, 0, 0x00000064);
+            set_text_color(TEXT_BLUE_GREEN_RED_CYCLE_2);
+            print_text1_center_mode_1(0x000000A0, arg0->row + 0x1E, D_800E7778[gModeSelection / 3], 0, 1.0f, 1.0f);
+        }
+        switch (arg0->state) {
+            default:
+                var_a1 = 0x000000FF;
+                break;
+            case 0:
+            case 1:
+                var_a1 = 0;
+                break;
+            case 2:
+                var_a1 = arg0->param1;
+                break;
+        }
+        gDPSetPrimColor(gDisplayListHead++, 0, 0, 0x00, 0x00, 0x00, var_a1);
+        switch (gPlayerCount) {
+            case 2:
+                func_800A69C8(arg0);
+                break;
+            case 3:
+                func_800A6BEC(arg0);
+                break;
+            case 4:
+                func_800A6CC0(arg0);
+                break;
+            default:
+                break;
+        }
     }
     if (arg0->state >= 10) {
         for (var_s1 = 0; var_s1 < 4; var_s1++) {
@@ -9528,8 +9538,58 @@ void handle_menus_with_pri_arg(s32 priSpecial) {
     }
 }
 
+static void render_extended_character_cursors(void) {
+    if (gGamestate == RACING || gMenuSelection != CHARACTER_SELECT_MENU || gPlayerCount <= 4) return;
+    for (s32 i = 0; i < gPlayerCount; i++) {
+        s32 cell = gCharacterGridSelections[i] - 1;
+        if (cell < 0 || cell >= 8) continue;
+        MenuItem* portrait = get_menu_item_character(cell);
+        RGBA16* color = &D_800E74A8[i % 4];
+        s32 x = portrait->column, y = portrait->row;
+        // Use the original cursor palette and native font for all eight ports.
+        // Nested outlines keep shared, unconfirmed selections visible.
+        s32 inset = 1 + i / 4;
+        s32 alpha = gCharacterGridIsSelected[i] ? 255 : 160 + (gGlobalTimer % 16) * 6;
+        gDisplayListHead = draw_box_fill(gDisplayListHead, x + inset, y + inset, x + 64 - inset, y + inset + 1,
+                                         color->red, color->green, color->blue, alpha);
+        gDisplayListHead = draw_box_fill(gDisplayListHead, x + inset, y + 78 - inset, x + 64 - inset, y + 79 - inset,
+                                         color->red, color->green, color->blue, alpha);
+        gDisplayListHead = draw_box_fill(gDisplayListHead, x + inset, y + inset, x + inset + 1, y + 79 - inset,
+                                         color->red, color->green, color->blue, alpha);
+        gDisplayListHead = draw_box_fill(gDisplayListHead, x + 63 - inset, y + inset, x + 64 - inset, y + 79 - inset,
+                                         color->red, color->green, color->blue, alpha);
+        char label[] = "1P";
+        label[0] += i;
+        set_text_color(gCharacterGridIsSelected[i] ? TEXT_YELLOW : TEXT_BLUE);
+        print_text_mode_1(x + 4 + (i % 4) * 14, y + 13 + (i / 4) * 12, label, 0, 0.32f, 0.5f);
+    }
+}
+
+static void render_extended_results(void) {
+    if (gGamestate != RACING || gPlayerCountSelection1 <= 4 ||
+        gRaceState != RACE_FINISHED || D_8015F894 != 2) return;
+    gDisplayListHead = draw_box_fill(gDisplayListHead, 76, 8, 244, 148, 0, 0, 0, 160);
+    set_text_color(TEXT_YELLOW);
+    print_text1_center_mode_1(160, 23, gModeSelection == BATTLE ? "BATTLE RESULTS" : "VS RESULTS", 0, 0.6f, 0.6f);
+    for (s32 rank = 0; rank < gPlayerCountSelection1; rank++) {
+        for (s32 player = 0; player < gPlayerCountSelection1; player++) {
+            if (gModeSelection == BATTLE ? player != rank : gGPCurrentRaceRankByPlayerId[player] != rank) continue;
+            char label[] = "1P";
+            label[0] += player;
+            set_text_color(TEXT_YELLOW);
+            print_text_mode_1(94, 39 + rank * 13, label, 0, 0.5f, 0.5f);
+            const char* name = D_800E76A8[gPlayers[player].characterId];
+            print_text_mode_1(124, 39 + rank * 13, (char*) name, 0, 0.5f, 0.5f);
+            if (gModeSelection == BATTLE && player == gPlayerWinningIndex)
+                print_text_mode_1(196, 39 + rank * 13, "WIN", 0, 0.4f, 0.5f);
+        }
+    }
+}
+
 void handle_menus_default(void) {
     handle_menus_with_pri_arg(0);
+    render_extended_character_cursors();
+    render_extended_results();
 }
 
 void handle_menus_special(void) {

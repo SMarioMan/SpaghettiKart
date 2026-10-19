@@ -1,4 +1,6 @@
 #include "Sky.h"
+#include <algorithm>
+#include <cmath>
 
 #include <libultraship.h>
 #include <libultra/gbi.h>
@@ -71,6 +73,7 @@ Sky* Sky::Instance;
 Sky::Sky() {
     Instance = this;
     guMtxIdent(&mSkyboxMatrix);
+    guOrtho(&mSkyboxProjection, 0.0f, SCREEN_WIDTH, 0.0f, SCREEN_HEIGHT, 0.0f, 5.0f, 1.0f);
 }
 
 Sky* Sky::GetSky() {
@@ -157,16 +160,6 @@ void Sky::SetColours(Vtx* skybox) { // func_802A450C(Vtx* skybox)
 void Sky::Draw(ScreenContext* screen) { // func_802A4A0C(Vtx* vtx, ScreenContext* screen)
     Camera* camera = screen->camera;
     s16 temp_t5;
-    f32 temp_f0;
-    UNUSED s32 pad[2];
-    UNUSED u16 pad2;
-    u16 sp128;
-    Mat4 matrix1 = { 0 };
-    Mat4 matrix2 = { 0 };
-    Mat4 matrix3 = { 0 };
-    Vec3f sp5C;
-    f32 sp58;
-
     Vtx* vtx;
     if (screen - gScreenContexts >= 4) {
         vtx = mExtraSkyboxes[screen - gScreenContexts - 4];
@@ -202,27 +195,16 @@ void Sky::Draw(ScreenContext* screen) { // func_802A4A0C(Vtx* vtx, ScreenContext
     vtx[6].v.ob[0] = OTRGetRectDimensionFromLeftEdge(0) - 8;
     vtx[7].v.ob[0] = OTRGetRectDimensionFromLeftEdge(0) - 8;
 
-    sp5C[0] = 0.0f;
-    sp5C[1] = 0.0f;
-    sp5C[2] = 30000.0f;
-    func_802B5564(matrix1, &sp128, camera->unk_B4, gScreenAspect, CM_GetProps()->NearPersp, CM_GetProps()->FarPersp,
-                  1.0f);
-    func_802B5794(matrix2, camera->pos, camera->lookAt);
-    mtxf_multiplication(matrix3, matrix1, matrix2);
-
-    sp58 = ((matrix3[0][3] * sp5C[0]) + (matrix3[1][3] * sp5C[1]) + (matrix3[2][3] * sp5C[2])) + matrix3[3][3];
-
-    mtxf_translate_vec3f_mat4(sp5C, matrix3);
-
-    temp_f0 = (1.0 / sp58);
-
-    sp5C[0] *= temp_f0;
-    sp5C[1] *= temp_f0;
-
-    sp5C[0] *= 160.0f;
-    sp5C[1] *= 120.0f;
-
-    temp_t5 = 120 - (s32) sp5C[1];
+    // Project the horizon from pitch, independent of yaw and world position.
+    // Projecting a fixed world-space point divides by zero when it crosses the
+    // camera plane, wrapping the s16 horizon and flashing the whole sky.
+    const float dx = camera->lookAt[0] - camera->pos[0];
+    const float dy = camera->lookAt[1] - camera->pos[1];
+    const float dz = camera->lookAt[2] - camera->pos[2];
+    const float horizontal = std::max(std::hypot(dx, dz), 0.001f);
+    const float focal = 120.0f / std::tan(camera->fieldOfView * 3.14159265f / 360.0f);
+    const float horizon = 120.0f - dy * focal / horizontal;
+    temp_t5 = static_cast<s16>(std::clamp(horizon, 0.0f, 240.0f));
     screen->cameraHeight = temp_t5;
     vtx[1].v.ob[1] = temp_t5;
     vtx[2].v.ob[1] = temp_t5;
@@ -232,9 +214,8 @@ void Sky::Draw(ScreenContext* screen) { // func_802A4A0C(Vtx* vtx, ScreenContext
     init_rdp();
     gDPSetRenderMode(gDisplayListHead++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
     gSPClearGeometryMode(gDisplayListHead++, G_ZBUFFER | G_LIGHTING);
-    guOrtho(&gGfxPool->mtxScreen, 0.0f, SCREEN_WIDTH, 0.0f, SCREEN_HEIGHT, 0.0f, 5.0f, 1.0f);
     gSPPerspNormalize(gDisplayListHead++, 0xFFFF);
-    gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(&gGfxPool->mtxScreen),
+    gSPMatrix(gDisplayListHead++, &mSkyboxProjection,
               G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
     gSPMatrix(gDisplayListHead++, (uintptr_t)&mSkyboxMatrix, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPVertex(gDisplayListHead++, (uintptr_t)&vtx[0], 4, 0);
@@ -273,9 +254,8 @@ void Sky::DrawFloor(ScreenContext* screen) { // func_802A487C
 
     gDPSetRenderMode(gDisplayListHead++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
     gSPClearGeometryMode(gDisplayListHead++, G_ZBUFFER | G_LIGHTING);
-    guOrtho(&gGfxPool->mtxScreen, 0.0f, SCREEN_WIDTH, 0.0f, SCREEN_HEIGHT, 0.0f, 5.0f, 1.0f);
     gSPPerspNormalize(gDisplayListHead++, 0xFFFF);
-    gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(&gGfxPool->mtxScreen),
+    gSPMatrix(gDisplayListHead++, &mSkyboxProjection,
                 G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
     gSPMatrix(gDisplayListHead++, (uintptr_t)&mSkyboxMatrix, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
     gSPVertex(gDisplayListHead++, (uintptr_t)&vtx[4], 4, 0);

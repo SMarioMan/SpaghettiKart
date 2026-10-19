@@ -101,7 +101,7 @@ const s8 sScreenModePlayerTable[] = { SCREEN_MODE_1P, SCREEN_MODE_2P_SPLITSCREEN
 const s8 sScreenModePlayerCount[] = { 1, 2, 2, 3, 4 };
 
 // Set indexed slots numbers for one-two-three-four mode selection
-const s8 gPlayerModeSelection[] = { 1, 2, 1, 1, 0, 0, 0, 0 };
+const s8 gPlayerModeSelection[] = { 1, 2, 1, 1, 1, 1, 1, 1 };
 
 // Limit for each index column in one-two-three-four mode selection
 const s8 sGameModePlayerColumnDefault[][3] = {
@@ -134,10 +134,10 @@ const s32 gGameModePlayerSelection[][3] = {
     { GRAND_PRIX, VERSUS, BATTLE },          // 2p game modes
     { VERSUS, BATTLE, 0x00000000 },          // 3p game modes
     { VERSUS, BATTLE, 0x00000000 },          // 4p game modes
-    { VERSUS, 0, 0 },
-    { VERSUS, 0, 0 },
-    { VERSUS, 0, 0 },
-    { VERSUS, 0, 0 },
+    { VERSUS, BATTLE, 0 },
+    { VERSUS, BATTLE, 0 },
+    { VERSUS, BATTLE, 0 },
+    { VERSUS, BATTLE, 0 },
 };
 
 // Map from character grid position id to character id

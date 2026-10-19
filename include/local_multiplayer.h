@@ -9,15 +9,16 @@ typedef struct {
 } LocalPlayerViewport;
 
 static inline int local_multiplayer_rows(int count) {
-    return (count + 1) / 2;
+    (void) count;
+    return 2;
 }
 
 static inline LocalPlayerViewport local_player_viewport(int count, int player) {
     int rows = local_multiplayer_rows(count);
-    int row = player / 2;
+    int row = player / 4;
     int top = row * 240 / rows;
     int bottom = (row + 1) * 240 / rows;
-    LocalPlayerViewport view = { (player % 2) * 160, top, 160, bottom - top };
+    LocalPlayerViewport view = { (player % 4) * 80, top, 80, bottom - top };
     return view;
 }
 #endif

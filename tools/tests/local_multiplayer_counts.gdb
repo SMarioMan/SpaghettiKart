@@ -38,6 +38,10 @@ printf "SMOKE: %d players, %d frames, race state %d\n", $players, $frame, gRaceS
 set $i = 0
 while $i < $players
 printf "P%d type=%x speed=%f viewport=%dx%d camera=%p\n", $i+1, gPlayers[$i].type, gPlayers[$i].speed, gScreenContexts[$i].screenWidth, gScreenContexts[$i].screenHeight, gScreenContexts[$i].camera
+if gScreenContexts[$i].screenWidth != 80 || gScreenContexts[$i].screenHeight != 120
+printf "FAIL: four-column layout\n"
+quit 2
+end
 if gScreenContexts[$i].camera == 0 || (gPlayers[$i].type & 49152) != 49152
 quit 2
 end

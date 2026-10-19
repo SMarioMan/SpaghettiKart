@@ -1,9 +1,9 @@
-# Local Versus for 5–8 players
+# Local Versus and Battle for 5–8 players
 
 On the main menu, press Right past 4P to choose 5P, 6P, 7P, or 8P.
-The player count appears in the main-menu header and on the selected card.
-These additional counts offer Versus racing, including the existing engine-class
-and mirror options. The original 1–4 player modes remain available.
+The player count appears on the selected native menu card.
+These additional counts offer Versus racing and Battle. Versus retains the existing
+engine-class and mirror options. The original 1–4 player modes remain available.
 
 Open the Input Editor in the port menu to configure Controllers 1–8. Assign a
 separate gamepad to each port using the editor's device selection and default
@@ -16,14 +16,20 @@ character; confirming reserves it when unique character selection is enabled.
 This allows all eight characters to be chosen without trapping eight cursors
 on a full grid. Press A again once everyone is ready to continue to track select.
 
-Five and six players use two columns and three rows. Seven and eight use two
-columns and four rows. Unused cells are blank. Every active view has its own
-camera and shows the player number, race position, lap, and held item. Any active
-player can pause; the pause menu can be controlled by any player. Extended races
+All extended counts use four columns and two rows with no added dividers. Unused
+cells are black. On a 16:9 display each pane is 8:9; the engine preserves scene
+proportions within the panes. Every active view has its own
+camera with the original HUD textures and fonts for player number, position, lap,
+and held item. Battle omits racing information and retains the native kart
+balloons. Any active player can pause; the pause menu can be controlled by any player. Extended races
 finish when all but one player have crossed the finish line, with a standings
 panel and the existing retry/change-track/change-character/quit choices.
 
-Grand Prix, Time Trials, and Battle retain their original player limits. The
+Battle uses all four original arenas, with paired starts at each native spawn
+anchor. Players lose balloons and become bombs as in the original game; the last
+survivor wins.
+
+Grand Prix and Time Trials retain their original player limits. The
 extended Versus mode uses the eight-racer Grand Prix item distribution and the
 original four-listener audio mix.
 
@@ -38,7 +44,7 @@ ctest --test-dir build --output-on-failure -R '^local-multiplayer-layout$'
 ```
 
 The regression test checks bounds, overlap, and full canvas coverage for every
-extended layout, including the blank cell for odd player counts.
+extended layout, including unused cells for five, six, and seven players.
 
 Runtime testing should cover 5, 6, 7, and 8 players, plus original 1P and 4P modes:
 select characters, start a race, drive and steer independently, collect and use
@@ -59,7 +65,9 @@ python3 ../tools/tests/run_local_multiplayer_smoke.py ./Spaghettify
 ```
 
 These inject controller input and race completion state to exercise menu,
-viewport, item, pause, results, and retry paths. They complement physical
-controller playtesting; they do not replace it. The runner requires every expected outcome and fails on a debugger signal,
-missing result, or timeout. Use `--suite counts`, `--suite menus`, or
-`--suite workflow` to run an individual group.
+viewport, item, pause, results, retry, Battle elimination, and sky-horizon paths.
+They complement physical controller playtesting; they do not replace it. The
+runner requires every expected outcome and fails on a debugger signal, missing
+result, or timeout. Use `--suite counts`, `--suite menus`, `--suite workflow`,
+`--suite battle`, `--suite menus_battle`, `--suite sky`, or `--suite baseline` to
+run an individual group.

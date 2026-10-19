@@ -89,12 +89,12 @@ void func_8028E028(void) {
 void update_player_battle_status(void) {
     Player* player;
     s32 playerIndex;
-    s16 playersAlive[4];
-    s16 playersDead[4];
+    s16 playersAlive[NUM_PLAYERS];
+    s16 playersDead[NUM_PLAYERS];
     s16 aliveCounter = 0;
     s16 deadCounter = 0;
 
-    for (playerIndex = 0; playerIndex < 4; playerIndex++) {
+    for (playerIndex = 0; playerIndex < gPlayerCountSelection1; playerIndex++) {
         player = &gPlayers[playerIndex];
         if (!(player->type & PLAYER_EXISTS)) {
             continue;
@@ -116,7 +116,7 @@ void update_player_battle_status(void) {
     if (aliveCounter == 1) {
         gPlayerWinningIndex = (s32) playersAlive[0];
         func_8028E028();
-    } else if (aliveCounter == 0) {
+    } else if (aliveCounter == 0 && deadCounter > 0) {
         gPlayerWinningIndex = (s32) playersDead[0];
         func_8028E028();
     }

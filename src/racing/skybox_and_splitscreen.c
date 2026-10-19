@@ -265,6 +265,7 @@ void select_framebuffer(void) {
 }
 
 void func_802A4300(void) {
+    if (gPlayerCountSelection1 > 4) return; // Extended panes meet without dividers.
 
     if (gActiveScreenMode == SCREEN_MODE_1P) {
         return;
@@ -707,7 +708,10 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
     }
 
     if (CVarGetInteger("gDrawParticles", true) == true) {
-        switch (playerId) { // Render player particles or some effect
+        if (gPlayerCountSelection1 > 4) {
+            for (s32 i = 0; i < gPlayerCountSelection1; i++)
+                func_8006E7CC(&gPlayers[i], i, screenId);
+        } else switch (playerId) { // Render player particles or some effect
             case 0: func_80021B0C(); break;
             case 1: func_80021C78(); break;
             case 2: func_80021D40(); break;
@@ -720,7 +724,8 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
     }
     if (gPlayerCountSelection1 > 4) {
         gNumScreens++;
-        return; // Extended HUD is drawn by the PC UI, independently for every viewport.
+        render_local_multiplayer_hud(playerId);
+        return;
     }
     render_player_snow_effect(camera);
     func_80058BF4(); // Setup texture modes

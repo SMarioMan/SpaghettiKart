@@ -759,6 +759,10 @@ void race_logic_loop(void) {
             break;
         case SCREEN_MODE_3P_4P_SPLITSCREEN:
             if (gPlayerCountSelection1 > 4) {
+                // Clear every cell, including unused bottom-row panes.
+                gSPViewport(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(D_802B8880));
+                gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+                gDisplayListHead = draw_box_fill(gDisplayListHead, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, 255);
                 for (s32 i = 0; i < gPlayerCountSelection1; i++) {
                     render_screens(&gScreenContexts[i], RENDER_SCREEN_MODE_3P_4P_PLAYER_ONE, 8, i);
                 }
