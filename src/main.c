@@ -61,15 +61,15 @@ struct SPTask* sCurrentDisplaySPTask = NULL;
 struct SPTask* sNextAudioSPTask = NULL;
 struct SPTask* sNextDisplaySPTask = NULL;
 
-struct Controller gControllers[NUM_PLAYERS];
+struct Controller gControllers[NUM_PLAYERS + 4];
 struct Controller* gControllerOne = &gControllers[0];
 struct Controller* gControllerTwo = &gControllers[1];
 struct Controller* gControllerThree = &gControllers[2];
 struct Controller* gControllerFour = &gControllers[3];
-struct Controller* gControllerFive = &gControllers[4]; // All physical controllers combined.`
-struct Controller* gControllerSix = &gControllers[5];
-struct Controller* gControllerSeven = &gControllers[6];
-struct Controller* gControllerEight = &gControllers[7];
+struct Controller* gControllerFive = &gControllers[8]; // All physical controllers combined.`
+struct Controller* gControllerSix = &gControllers[9];
+struct Controller* gControllerSeven = &gControllers[10];
+struct Controller* gControllerEight = &gControllers[11];
 
 Player gPlayers[NUM_PLAYERS];
 Player* gPlayerOne = &gPlayers[0];
@@ -100,8 +100,8 @@ OSIoMesg gDmaIoMesg;
 OSMesgQueue gSIEventMesgQueue;
 OSMesg gSIEventMesgBuf[3];
 
-OSContStatus gControllerStatuses[4];
-OSContPad gControllerPads[4];
+OSContStatus gControllerStatuses[NUM_PLAYERS];
+OSContPad gControllerPads[NUM_PLAYERS];
 u8 gControllerBits;
 // Contains a 32x32 grid of indices into gCollisionIndices containing indices into gCollisionMesh
 CollisionGrid gCollisionGrid[1024];
@@ -395,27 +395,16 @@ void read_controllers(void) {
     osContStartReadData(&gSIEventMesgQueue);
     // osRecvMesg(&gSIEventMesgQueue, &msg, OS_MESG_BLOCK);
     osContGetReadData(gControllerPads);
-    update_controller(0);
-    update_controller(1);
-    update_controller(2);
-    update_controller(3);
-    gControllerFive->button = (s16) (((gControllerOne->button | gControllerTwo->button) | gControllerThree->button) |
-                                     gControllerFour->button);
-    gControllerFive->buttonPressed =
-        (s16) (((gControllerOne->buttonPressed | gControllerTwo->buttonPressed) | gControllerThree->buttonPressed) |
-               gControllerFour->buttonPressed);
-    gControllerFive->buttonDepressed = (s16) (((gControllerOne->buttonDepressed | gControllerTwo->buttonDepressed) |
-                                               gControllerThree->buttonDepressed) |
-                                              gControllerFour->buttonDepressed);
-    gControllerFive->stickDirection =
-        (s16) (((gControllerOne->stickDirection | gControllerTwo->stickDirection) | gControllerThree->stickDirection) |
-               gControllerFour->stickDirection);
-    gControllerFive->stickPressed =
-        (s16) (((gControllerOne->stickPressed | gControllerTwo->stickPressed) | gControllerThree->stickPressed) |
-               gControllerFour->stickPressed);
-    gControllerFive->stickDepressed =
-        (s16) (((gControllerOne->stickDepressed | gControllerTwo->stickDepressed) | gControllerThree->stickDepressed) |
-               gControllerFour->stickDepressed);
+    *gControllerFive = (struct Controller) { 0 };
+    for (s32 i = 0; i < NUM_PLAYERS; i++) {
+        update_controller(i);
+        gControllerFive->button |= gControllers[i].button;
+        gControllerFive->buttonPressed |= gControllers[i].buttonPressed;
+        gControllerFive->buttonDepressed |= gControllers[i].buttonDepressed;
+        gControllerFive->stickDirection |= gControllers[i].stickDirection;
+        gControllerFive->stickPressed |= gControllers[i].stickPressed;
+        gControllerFive->stickDepressed |= gControllers[i].stickDepressed;
+    }
 }
 
 void func_80000BEC(void) {
@@ -769,6 +758,12 @@ void race_logic_loop(void) {
             }
             break;
         case SCREEN_MODE_3P_4P_SPLITSCREEN:
+            if (gPlayerCountSelection1 > 4) {
+                for (s32 i = 0; i < gPlayerCountSelection1; i++) {
+                    render_screens(&gScreenContexts[i], RENDER_SCREEN_MODE_3P_4P_PLAYER_ONE, 8, i);
+                }
+                break;
+            }
             if (gPlayerWinningIndex == 0) {
                 render_screens(gScreenTwoCtx, RENDER_SCREEN_MODE_3P_4P_PLAYER_TWO, 9, 1);
                 render_screens(gScreenThreeCtx, RENDER_SCREEN_MODE_3P_4P_PLAYER_THREE, 10, 2);
@@ -793,6 +788,10 @@ void race_logic_loop(void) {
             break;
     }
 
+    if (gPlayerCountSelection1 > 4) {
+        func_8009C918();
+        func_800940EC(4); // Update and draw pause/results menus once for the whole canvas.
+    }
     display_debug_info();
 
     func_802A4300();

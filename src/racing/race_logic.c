@@ -45,13 +45,13 @@ float D_802BA034;
 s32 D_802BA038;
 UNUSED s32 D_802BA03C;
 
-s16 D_802BA040[4];
+s16 D_802BA040[8];
 u16 D_802BA048;
 
 void func_8028DF00(void) {
     struct Controller* controllers = &gControllers[0];
     s32 i;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < gPlayerCountSelection1; i++) {
         D_802BA040[i] = controllers->button;
         controllers++;
     }
@@ -60,7 +60,7 @@ void func_8028DF00(void) {
 void func_8028DF38(void) {
     struct Controller* controllers = &gControllers[0];
     s32 i;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < gPlayerCountSelection1; i++) {
         controllers->buttonPressed = (controllers->button & (D_802BA040[i] ^ controllers->button));
         controllers->buttonDepressed = (D_802BA040[i] & (D_802BA040[i] ^ controllers->button));
         controllers->button = D_802BA040[i];
@@ -164,6 +164,13 @@ void set_next_course(void) {
 }
 
 void func_8028E438(void) {
+    if (gPlayerCountSelection1 > 4) {
+        if (D_8015F894 != 2) {
+            D_8015F894 = 2;
+            func_80092604();
+        }
+        return;
+    }
     ScreenContext* temp_v0 = &gScreenContexts[gPlayerWinningIndex];
     s32 phi_v1_4;
 
@@ -554,6 +561,15 @@ void func_8028EF28(void) {
                                     func_800CA118((u8) i);
                                 }
                                 break;
+                            default: // Extended VS ends after the penultimate human finishes.
+                                if (gPlayerCountSelection1 > 4 && currentPosition == gPlayerCountSelection1 - 2) {
+                                    gRaceState = RACE_FINISHED;
+                                    s32 last = gPlayerPositionLUT[gPlayerCountSelection1 - 1];
+                                    gPlayers[last].triggers |= SPINOUT_TRIGGER;
+                                    gPlayers[last].type |= PLAYER_CPU;
+                                    func_800CA118((u8) last);
+                                }
+                                break;
                             case 4:
                                 if (currentPosition < 3) {
                                     *(gNmiUnknown3 + i * 3 + currentPosition) += 1;
@@ -759,7 +775,7 @@ void func_8028F970(void) {
     }
 
     //! @todo increasing players past four would require increase this loop iterator.
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < gPlayerCountSelection1; i++) {
 
         Player* player = &gPlayers[i];
         struct Controller* controller = &gControllers[i];
@@ -786,7 +802,7 @@ void func_8028F970(void) {
         if ((controller->buttonPressed & START_BUTTON) && (!(controller->button & R_TRIG)) &&
             (!(controller->button & L_TRIG))) {
             func_8028DF00();
-            gIsGamePaused = (controller - gControllerOne) + 1;
+            gIsGamePaused = gPlayerCountSelection1 > 4 ? 1 : (controller - gControllerOne) + 1;
             controller->buttonPressed = 0;
             func_800C9F90(1);
             gPauseTriggered = 1;

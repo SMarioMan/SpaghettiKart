@@ -330,7 +330,7 @@ extern bool D_801657F0;
 extern bool D_801657F8;
 extern s32 D_801657FC;
 
-extern s8 D_80165800[2];
+extern s8 D_80165800[8];
 extern s32 D_80165804;
 extern s8 D_80165808;
 extern s32 D_8016580C;
@@ -399,7 +399,7 @@ extern Vec3su D_80183E98;
 // extern s32 indexObjectList1[]; -> objects.h
 // extern s32 indexObjectList2[]; -> objects.h
 
-extern const char* gLakituTextureBuffer[4][2];
+extern const char* gLakituTextureBuffer[8][2];
 // extern s32 indexObjectList3[]; -> objects.h
 
 extern const char** gLakituTexturePtr;

@@ -7054,6 +7054,16 @@ void func_800A0EB8(UNUSED MenuItem* arg0, s32 arg1) {
 }
 
 void func_800A0FA4(MenuItem* arg0, s32 arg1) {
+    if (arg1 == 3 && gPlayerCount > 4) {
+        char label[] = "5P GAME";
+        label[0] = '0' + gPlayerCount;
+        gDisplayListHead = draw_box_fill(gDisplayListHead, arg0->column + 1, arg0->row + 1,
+                                         arg0->column + 62, arg0->row + 52, 20, 30, 50, 255);
+        set_text_color(TEXT_YELLOW);
+        print_text1_center_mode_1(arg0->column + 32, arg0->row + 25, label, 0, 0.65f, 0.65f);
+        print_text1_center_mode_1(arg0->column + 32, arg0->row + 78, "VS", 0, 0.65f, 0.65f);
+        return;
+    }
     switch (arg0->state) {
         case 0:
         case 2:
@@ -8255,6 +8265,12 @@ void render_pause_menu_versus(MenuItem* arg0) {
     temp_t0 = temp_v0->screenStartY;
     temp_t3 = temp_v0->screenWidth / 2;
     temp_t4 = temp_v0->screenHeight / 2;
+    if (gPlayerCountSelection1 > 4) {
+        temp_v1 = 160;
+        temp_t0 = 120;
+        temp_t3 = 160;
+        temp_t4 = 120;
+    }
 
     switch (gScreenModeSelection) {
         case SCREEN_MODE_2P_SPLITSCREEN_HORIZONTAL:
@@ -8291,7 +8307,9 @@ void render_pause_menu_versus(MenuItem* arg0) {
             break;
     }
 
-    temp_s3 = &D_800E8540[(gScreenModeSelection * 4) + (gIsGamePaused - 1)];
+    static Unk_D_800E70A0 extendedPausePosition = { 110, 100, 0, 0 };
+    temp_s3 = gPlayerCountSelection1 > 4 ? &extendedPausePosition
+        : &D_800E8540[(gScreenModeSelection * 4) + (gIsGamePaused - 1)];
     for (var_s0 = 0; var_s0 < 4; var_s0++) {
         if (var_s0 > 0) {
             var_s1 = var_s0 + 1;
@@ -8457,6 +8475,8 @@ void func_800A54EC(void) {
             var_v1 = &D_800E8600[(gScreenModeSelection * 4) + (gIsGamePaused - 1)];
             break;
     }
+    static Unk_D_800E70A0 extendedPausePosition = { 110, 100, 0, 0 };
+    if (gPlayerCountSelection1 > 4) var_v1 = &extendedPausePosition;
     whyTheSequel = D_800F0B50[why];
     sp50.column = var_v1->column - 8;
     sp50.row = (var_v1->row + ((sp48->state - whyTheSequel) * 0xD)) - 8;
@@ -9517,6 +9537,7 @@ void handle_menus_special(void) {
 }
 
 void func_800A8270(s32 index, MenuItem* arg1) {
+    s32 tableIndex = (index == 3 && gPlayerCount > 4) ? gPlayerCount - 1 : index;
     s32 column;
     s32 temp_t6;
     s32 var_s0;
@@ -9535,7 +9556,7 @@ void func_800A8270(s32 index, MenuItem* arg1) {
         gDPSetRenderMode(gDisplayListHead++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
         gDPSetCombineMode(gDisplayListHead++, G_CC_DECALRGBA, G_CC_DECALRGBA);
 
-        if ((index + 1) == gPlayerCount) {
+        if ((index + 1) == (gPlayerCount > 4 ? 4 : gPlayerCount)) {
             if ((gMainMenuSelection == MAIN_MENU_OPTION) || (gMainMenuSelection == MAIN_MENU_DATA) ||
                 (gMainMenuSelection == MAIN_MENU_PLAYER_SELECT)) {
                 gDisplayListHead = draw_flash_select_case_slow(gDisplayListHead, var_s3, var_s0, var_s4, var_s0 + 53);
@@ -9547,8 +9568,8 @@ void func_800A8270(s32 index, MenuItem* arg1) {
             gDisplayListHead = func_80098FC8(gDisplayListHead, var_s3, var_s0, var_s4, var_s0 + 53);
         }
 
-        for (var_s0 += 65, var_s2 = 0; var_s2 <= gPlayerModeSelection[index]; var_s2++, var_s0 += 18) {
-            if ((var_s2 == gGameModeMenuColumn[index]) && ((index + 1) == gPlayerCount) && (gMainMenuSelection >= 4)) {
+        for (var_s0 += 65, var_s2 = 0; var_s2 <= gPlayerModeSelection[tableIndex]; var_s2++, var_s0 += 18) {
+            if ((var_s2 == gGameModeMenuColumn[tableIndex]) && ((index + 1) == (gPlayerCount > 4 ? 4 : gPlayerCount)) && (gMainMenuSelection >= 4)) {
                 if (gMainMenuSelection == MAIN_MENU_MODE_SELECT) {
                     gDisplayListHead =
                         draw_flash_select_case_slow(gDisplayListHead, var_s3, var_s0, var_s4, var_s0 + 17);
@@ -10128,14 +10149,14 @@ void func_800A9C40(MenuItem* arg0) {
     switch (arg0->state) {
         case 0:
             func_800AA280(arg0);
-            if ((gPlayerCount + 0xA) == arg0->type) {
+            if (((gPlayerCount > 4 ? 4 : gPlayerCount) + 0xA) == arg0->type) {
                 arg0->state = 2;
             } else {
                 arg0->state = 1;
             }
             break;
         case 4:
-            if ((gPlayerCount + 0xA) == arg0->type) {
+            if (((gPlayerCount > 4 ? 4 : gPlayerCount) + 0xA) == arg0->type) {
                 arg0->state = 2;
                 arg0->param1 = 0;
                 break;
@@ -10156,7 +10177,7 @@ void func_800A9C40(MenuItem* arg0) {
             }
             break;
         case 3:
-            if ((gPlayerCount + 0xA) == arg0->type) {
+            if (((gPlayerCount > 4 ? 4 : gPlayerCount) + 0xA) == arg0->type) {
                 arg0->state = 2;
             }
             break;
@@ -10169,7 +10190,7 @@ void func_800A9C40(MenuItem* arg0) {
 void func_800A9D5C(MenuItem* arg0) {
     Unk_D_800E70A0* temp_v0;
 
-    if ((gPlayerCount + 0xA) == arg0->type) {
+    if (((gPlayerCount > 4 ? 4 : gPlayerCount) + 0xA) == arg0->type) {
         arg0->priority = 0x0A;
     } else {
         arg0->priority = 6;
@@ -10620,6 +10641,12 @@ void func_800AAC18(MenuItem* arg0) {
     Unk_D_800E70A0* var_t0;
 
     temp_a1 = arg0->type - 0x2B;
+    if (gPlayerCount > 4) {
+        // Keep all portraits on the eight-character grid during the ready animation.
+        arg0->column = D_800E7108[temp_a1 / 4][temp_a1 % 4].column;
+        arg0->row = D_800E7108[temp_a1 / 4][temp_a1 % 4].row;
+        return;
+    }
     switch (arg0->state) {
         case 0:
             if (gPlayerSelectMenuSelection == 3) {
@@ -10636,7 +10663,7 @@ void func_800AAC18(MenuItem* arg0) {
             }
         case 1:
         case 3:
-            var_t0 = &D_800E7108[0][temp_a1];
+            var_t0 = &D_800E7108[temp_a1 / 4][temp_a1 % 4];
             arg0->column = (s32) var_t0->column;
             arg0->row = (s32) var_t0->row;
             break;
@@ -10648,7 +10675,7 @@ void func_800AAC18(MenuItem* arg0) {
                     var_t0 = &D_800E7188[(gScreenModeSelection * 4) + temp_v0];
                 }
             } else {
-                var_t0 = &D_800E7108[0][temp_a1];
+                var_t0 = &D_800E7108[temp_a1 / 4][temp_a1 % 4];
                 if ((var_t0->column == arg0->column) && (var_t0->row == arg0->row)) {
                     arg0->state = 0;
                     return;
@@ -10678,7 +10705,7 @@ void func_800AAE18(MenuItem* arg0) {
 
     temp_v0 = func_800AAFCC(arg0->type - CHARACTER_SELECT_MENU_MARIO);
     if (temp_v0 >= 0) {
-        arg0->priority = 0xE - (temp_v0 * 2);
+        arg0->priority = 0xE - (temp_v0 * (gPlayerCount > 4 ? 1 : 2));
     } else {
         arg0->priority = 6;
     }
@@ -10690,7 +10717,7 @@ void func_800AAE18(MenuItem* arg0) {
  * is found.
  **/
 MenuItem* get_menu_item_player_count(void) {
-    s32 count = gPlayerCount - 1;
+    s32 count = (gPlayerCount > 4 ? 4 : gPlayerCount) - 1;
     for (size_t i = 0; i < ARRAY_COUNT(gMenuItems); i++) {
         if (gMenuItems[i].type == (count + MENU_ITEM_UI_1P_GAME)) {
             return &gMenuItems[i];
@@ -10812,20 +10839,13 @@ void hover_cursor_over_character_portrait(MenuItem* arg0, s32 arg1) {
 }
 
 s32 func_800AAFCC(s32 characterId) {
-    s32 someIndex = 0;
-    s32 ret = false;
-
-    for (; someIndex < 4; someIndex++) {
-        if ((characterId + 1) == gCharacterGridSelections[someIndex]) {
-            ret = true;
-            break;
-        }
+    // Prefer the confirmed owner when unconfirmed cursors share a cell.
+    for (s32 player = 0; player < gPlayerCount; player++) {
+        if (gCharacterGridSelections[player] == characterId + 1 && gCharacterGridIsSelected[player]) return player;
     }
-
-    if (ret != false) {
-        return someIndex;
+    for (s32 player = 0; player < gPlayerCount; player++) {
+        if (gCharacterGridSelections[player] == characterId + 1) return player;
     }
-
     return -1;
 }
 
@@ -11585,6 +11605,11 @@ void func_800ACA14(MenuItem* arg0) {
 
 void func_800ACC50(MenuItem* arg0) {
     s32 i;
+    if (gPlayerCount > 4 && arg0->state < 2) {
+        arg0->state = 2;
+        arg0->param1 = 0;
+    }
+
 
     switch (arg0->state) {
         case 0:
@@ -12137,7 +12162,7 @@ void func_800ADF48(MenuItem* arg0) {
             case 43:
             case 44:
                 if (is_screen_being_faded() == 0) {
-                    controller = &gControllers[gIsGamePaused - 1];
+                    controller = gPlayerCountSelection1 > 4 ? gControllerFive : &gControllers[gIsGamePaused - 1];
                     if ((controller->buttonPressed | controller->stickPressed) & 0x800) {
                         if (D_800F0B50[gModeSelection] < arg0->state) {
                             arg0->state--;

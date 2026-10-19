@@ -282,22 +282,12 @@ void spawn_player(Player* player, s8 playerIndex, f32 startingRow, f32 startingC
 
     idx = playerIndex;
 
-    gLastAnimFrameSelector[0][idx] = 0;
-    gLastAnimFrameSelector[1][idx] = 0;
-    gLastAnimFrameSelector[2][idx] = 0;
-    gLastAnimFrameSelector[3][idx] = 0;
-    gLastAnimGroupSelector[0][idx] = 0;
-    gLastAnimGroupSelector[1][idx] = 0;
-    gLastAnimGroupSelector[2][idx] = 0;
-    gLastAnimGroupSelector[3][idx] = 0;
-    D_80165190[0][idx] = 0;
-    D_80165190[1][idx] = 0;
-    D_80165190[2][idx] = 0;
-    D_80165190[3][idx] = 0;
-    D_801651D0[0][idx] = 0;
-    D_801651D0[1][idx] = 0;
-    D_801651D0[2][idx] = 0;
-    D_801651D0[3][idx] = 0;
+    for (s32 screen = 0; screen < 8; screen++) {
+        gLastAnimFrameSelector[screen][idx] = 0;
+        gLastAnimGroupSelector[screen][idx] = 0;
+        D_80165190[screen][idx] = 0;
+        D_801651D0[screen][idx] = 0;
+    }
 
     gFrameSinceLastACombo[idx] = 0;
     gCountASwitch[idx] = 0;
@@ -1147,6 +1137,20 @@ void spawn_and_set_player_spawns(void) {
         D_80164A28 = 0;
     }
 
+    if (gPlayerCountSelection1 > 4 && gModeSelection == VERSUS) {
+        for (s32 i = 0; i < NUM_PLAYERS; i++) {
+            // Four staggered rows keep every starting kart separate.
+            D_80165210[i] = sp5E + ((i & 1) ? -20.0f : 20.0f);
+            D_80165230[i] = sp5C + 30.0f + (i / 2) * 35.0f;
+            spawn_player(&gPlayers[i], i, D_80165210[i], D_80165230[i], sp5A, 32768.0f,
+                         gCharacterSelections[i], i < gPlayerCountSelection1
+                             ? (PLAYER_EXISTS | PLAYER_START_SEQUENCE | PLAYER_HUMAN)
+                             : 0);
+        }
+        D_80164A28 = 0;
+        func_80039AE4();
+    }
+
     if (gModeSelection != BATTLE) {
         init_players();
     }
@@ -1162,23 +1166,9 @@ void func_8003CD98(Player* player, Camera* camera, s8 playerId, s8 screenId) {
             func_8002D268(player, camera, screenId, playerId);
         }
         func_8002934C(player, camera, screenId, playerId);
-        if ((screenId == 0) || (screenId == 1)) {
-            load_kart_palette(player, playerId, screenId, 0);
-            load_kart_palette(player, playerId, screenId, 1);
-            load_kart_texture(player, playerId, screenId, screenId, 0);
-#ifdef TARGET_N64
-            mio0decode((u8*) &gEncodedKartTexture[0][screenId][playerId],
-                       (u8*) &D_802BFB80.arraySize8[0][screenId][playerId]);
-#endif
-        } else {
-            load_kart_palette(player, playerId, screenId, 0);
-            load_kart_palette(player, playerId, screenId, 1);
-            load_kart_texture(player, (s8) (playerId + 4), screenId, (s8) (screenId - 2), 0);
-#ifdef TARGET_N64
-            mio0decode((u8*) &gEncodedKartTexture[0][screenId - 2][playerId + 4],
-                       (u8*) &D_802BFB80.arraySize8[0][screenId - 2][playerId + 4]);
-#endif
-        }
+        load_kart_palette(player, playerId, screenId, 0);
+        load_kart_palette(player, playerId, screenId, 1);
+        load_kart_texture(player, playerId, screenId, screenId, 0);
 
         gLastAnimFrameSelector[screenId][playerId] = player->animFrameSelector[screenId];
         gLastAnimGroupSelector[screenId][playerId] = player->animGroupSelector[screenId];
@@ -1226,7 +1216,7 @@ void spawn_players_and_cameras(void) {
         mode = 3;
     }
 
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 8; i++) {
         D_80164A08[i] = 0;
         D_80164498[i] = 0;
     }
@@ -1317,7 +1307,7 @@ void spawn_multiplayer_cameras(u32 mode) {
             screens = 2;
             break;
         case SCREEN_MODE_3P_4P_SPLITSCREEN:
-            screens = 4;
+            screens = gPlayerCountSelection1 > 4 ? gPlayerCountSelection1 : 4;
             break;
     }
     for (size_t i = 0; i < screens; i++) {
@@ -1362,11 +1352,11 @@ void load_kart_textures(void) {
             screens = 2;
             break;
         case SCREEN_MODE_3P_4P_SPLITSCREEN:
-            screens = 4;
+            screens = gPlayerCountSelection1 > 4 ? gPlayerCountSelection1 : 4;
             break;
     }
 
-    static const size_t playerCounts[4] = { 8, 8, 4, 4 };
+    static const size_t playerCounts[8] = { 8, 8, 4, 4, 8, 8, 8, 8 };
     for (size_t i = 0; i < screens; i++) {
         for (size_t ply = 0; ply < playerCounts[gPlayerCountSelection1 - 1]; ply++) {
             func_8003CD98(&gPlayers[ply], gScreenContexts[i].camera, ply, i);

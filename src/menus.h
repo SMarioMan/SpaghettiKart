@@ -191,8 +191,8 @@ enum ControllerPakScrollDirectionTypes {
     CONTROLLER_PAK_SCROLL_DIR_UP
 };
 
-#define NUM_ROWS_GAME_MODE_MENU 4
-#define NUM_COLUMN_GAME_MODE_SUB_MENU 4
+#define NUM_ROWS_GAME_MODE_MENU 8
+#define NUM_COLUMN_GAME_MODE_SUB_MENU 8
 #define NUM_ROWS_GAME_MODE_SUB_MENU 3
 
 // This really, really shouldn't be in this header file, but I don't know where else to put it

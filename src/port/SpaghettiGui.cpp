@@ -1,5 +1,6 @@
 #include <libultraship.h>
 #include "SpaghettiGui.h"
+#include "ui/LocalMultiplayer.h"
 #include <ship/window/gui/Gui.h>
 #include <ship/window/Window.h>
 #include "ship/config/Config.h"
@@ -153,6 +154,7 @@ void SpaghettiGui::DrawMenu() {
         windowIter.second->Draw();
     }
 
+    GameUI::DrawLocalMultiplayer();
     ImGui::End();
 }
 

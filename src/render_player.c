@@ -60,11 +60,11 @@ UNUSED u16 gPlayerWhiteEffect[8];
 s32 D_80164B80[296];
 s16 D_80165020[40];
 Vec3f gPlayerLastVelocity[8];
-s16 gLastAnimFrameSelector[4][8];
-s16 gLastAnimGroupSelector[4][8];
-s16 D_80165150[4][8];
-s16 D_80165190[4][8];
-s16 D_801651D0[4][8];
+s16 gLastAnimFrameSelector[8][8];
+s16 gLastAnimGroupSelector[8][8];
+s16 D_80165150[8][8];
+s16 D_80165190[8][8];
+s16 D_801651D0[8][8];
 
 void func_8001F980(s32* arg0, s32* arg1) {
     if ((gDemoMode == 1) || (D_80164A28 != 0) || (D_8015F894 != 0)) {
@@ -88,14 +88,14 @@ void func_8001F9E4(Player* player, Camera* camera, s8 screenId) {
     get_player_index_for_player(player);
     func_8001F980(&sp30, &sp2C);
 
-    player->unk_002 &= ~(UNK_002_UNKNOWN_0x2 << (screenId * 4));
-    player->unk_002 &= ~(SIDE_OF_KART << (screenId * 4));
+    player->unk_002 &= ~(((u32) UNK_002_UNKNOWN_0x2) << (screenId * 4));
+    player->unk_002 &= ~(((u32) SIDE_OF_KART) << (screenId * 4));
 
     if (check_player_camera_collision(player, camera, (f32) (D_80165578 + sp30), (f32) (D_8016557A + sp2C)) == 1) {
-        player->unk_002 |= UNK_002_UNKNOWN_0x2 << (screenId * 4);
+        player->unk_002 |= ((u32) UNK_002_UNKNOWN_0x2) << (screenId * 4);
     }
     if (check_player_camera_collision(player, camera, (f32) D_80165580, (f32) D_80165582) == 1) {
-        player->unk_002 |= SIDE_OF_KART << (screenId * 4);
+        player->unk_002 |= ((u32) SIDE_OF_KART) << (screenId * 4);
     }
 }
 
@@ -194,7 +194,7 @@ void init_render_player(Player* player, Camera* camera, s8 playerId, s8 screenId
 
     if ((player->type & PLAYER_EXISTS) == PLAYER_EXISTS) {
         func_8001F9E4(player, camera, screenId);
-        temp_v0 = UNK_002_UNKNOWN_0x2 << (screenId << 2);
+        temp_v0 = ((u32) UNK_002_UNKNOWN_0x2) << (screenId << 2);
         if (temp_v0 == (player->unk_002 & temp_v0)) {
             if (!(player->type & PLAYER_START_SEQUENCE)) {
                 func_8002934C(player, camera, screenId, playerId);
@@ -206,7 +206,7 @@ void init_render_player(Player* player, Camera* camera, s8 playerId, s8 screenId
             }
         }
         func_8001F980(&sp4C, &sp48);
-        temp_v0_2 = CHANGING_ANIMATION << (screenId << 2);
+        temp_v0_2 = ((u32) CHANGING_ANIMATION) << (screenId << 2);
         if ((temp_v0 == (player->unk_002 & temp_v0)) && (temp_v0_2 == (player->unk_002 & temp_v0_2))) {
             if ((check_player_camera_collision(player, camera, D_80165570 + sp4C, D_80165572 + sp48) == 1) & 0xFFFF) {
                 gPlayersToRenderPlayerId[gPlayersToRenderCount] = (s16) playerId;
@@ -281,57 +281,17 @@ void init_render_player(Player* player, Camera* camera, s8 playerId, s8 screenId
  * 
  */
 void load_kart_texture_and_render_kart_particles(s32 screenIdx) {
-    s16 i;
-    s32 screenOffset = (screenIdx >= 2) ? -2: 0;
-    s32 playerOffset = (screenIdx >= 2) ? 4 : 0;
-
-    load_kart_texture_non_blocking(
-        gPlayersToRenderPlayer[0],
-        gPlayersToRenderPlayerId[0] + playerOffset,
-        gPlayersToRenderScreenId[0],
-        gPlayersToRenderScreenId[0] + screenOffset,
-        D_801651D0[gPlayersToRenderScreenId[0]][gPlayersToRenderPlayerId[0]]
-    );
-
-    osRecvMesg(&gDmaMesgQueue, &gMainReceivedMesg, OS_MESG_BLOCK);
-
-    for (i = 1; i < gPlayersToRenderCount; i++) {
-        load_kart_texture_non_blocking(
-            gPlayersToRenderPlayer[i],
-            gPlayersToRenderPlayerId[i] + playerOffset,
-            gPlayersToRenderScreenId[i],
-            gPlayersToRenderScreenId[i] + screenOffset,
-            D_801651D0[gPlayersToRenderScreenId[i]][gPlayersToRenderPlayerId[i]]
-        );
-
-        strcpy((char*) D_802BFB80
-                   .arraySize8[D_801651D0[gPlayersToRenderScreenId[i - 1]][gPlayersToRenderPlayerId[i - 1]]]
-                              [gPlayersToRenderScreenId[i - 1] + screenOffset]
-                              [gPlayersToRenderPlayerId[i - 1] + playerOffset]
-                   .pixel_index_array,
-               gEncodedKartTexture[D_801651D0[gPlayersToRenderScreenId[i - 1]][gPlayersToRenderPlayerId[i - 1]]]
-                                  [gPlayersToRenderScreenId[i - 1] + screenOffset]
-                                  [gPlayersToRenderPlayerId[i - 1] + playerOffset]
-                                      .unk_00);
+    for (s32 i = 0; i < gPlayersToRenderCount; i++) {
+        s32 playerId = gPlayersToRenderPlayerId[i];
+        load_kart_texture(gPlayersToRenderPlayer[i], playerId, screenIdx, screenIdx,
+                          D_801651D0[screenIdx][playerId]);
     }
-
-    strcpy((char*) D_802BFB80
-               .arraySize8[D_801651D0[gPlayersToRenderScreenId[gPlayersToRenderCount - 1]]
-                                     [gPlayersToRenderPlayerId[gPlayersToRenderCount - 1]]]
-                          [gPlayersToRenderScreenId[gPlayersToRenderCount - 1] + screenOffset]
-                          [gPlayersToRenderPlayerId[gPlayersToRenderCount - 1] + playerOffset]
-               .pixel_index_array,
-           gEncodedKartTexture[D_801651D0[gPlayersToRenderScreenId[gPlayersToRenderCount - 1]]
-                                         [gPlayersToRenderPlayerId[gPlayersToRenderCount - 1]]]
-                              [gPlayersToRenderScreenId[gPlayersToRenderCount - 1] + screenOffset]
-                              [gPlayersToRenderPlayerId[gPlayersToRenderCount - 1] + playerOffset]
-                                  .unk_00);
 }
 
 void try_rendering_player(Player* player, s8 playerId, s8 screenIdx) {
 
     if (((player->type & PLAYER_EXISTS) == PLAYER_EXISTS) && ((player->type & PLAYER_UNKNOWN_0x40) == 0)) {
-        if ((player->unk_002 & 2 << (screenIdx * 4)) == 2 << (screenIdx * 4)) {
+        if ((player->unk_002 & 2u << (screenIdx * 4)) == 2u << (screenIdx * 4)) {
             render_player(player, playerId, screenIdx);
         }
     }
@@ -351,7 +311,7 @@ void render_players(Camera* camera, s32 screenIdx) {
     init_render_player(gPlayerTwo, camera, PLAYER_TWO, screenIdx);
     init_render_player(gPlayerThree, camera, PLAYER_THREE, screenIdx);
     init_render_player(gPlayerFour, camera, PLAYER_FOUR, screenIdx);
-    if (gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN) {
+    if ((gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN || gPlayerCountSelection1 > 4)) {
         init_render_player(gPlayerFive, camera, PLAYER_FIVE, screenIdx);
         init_render_player(gPlayerSix, camera, PLAYER_SIX, screenIdx);
         init_render_player(gPlayerSeven, camera, PLAYER_SEVEN, screenIdx);
@@ -367,7 +327,7 @@ void render_players(Camera* camera, s32 screenIdx) {
     try_rendering_player(gPlayerTwo, PLAYER_TWO, screenIdx);
     try_rendering_player(gPlayerThree, PLAYER_THREE, screenIdx);
     try_rendering_player(gPlayerFour, PLAYER_FOUR, screenIdx);
-    if (gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN) {
+    if ((gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN || gPlayerCountSelection1 > 4)) {
         try_rendering_player(gPlayerFive, PLAYER_FIVE, screenIdx);
         try_rendering_player(gPlayerSix, PLAYER_SIX, screenIdx);
         try_rendering_player(gPlayerSeven, PLAYER_SEVEN, screenIdx);
@@ -380,7 +340,7 @@ void render_players(Camera* camera, s32 screenIdx) {
     render_kart_particles(gPlayerTwo, PLAYER_TWO, screenIdx);
     render_kart_particles(gPlayerThree, PLAYER_THREE, screenIdx);
     render_kart_particles(gPlayerFour, PLAYER_FOUR, screenIdx);
-    if (gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN) {
+    if ((gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN || gPlayerCountSelection1 > 4)) {
         render_kart_particles(gPlayerFive, PLAYER_FIVE, screenIdx);
         render_kart_particles(gPlayerSix, PLAYER_SIX, screenIdx);
         render_kart_particles(gPlayerSeven, PLAYER_SEVEN, screenIdx);
@@ -541,7 +501,7 @@ void func_80021B0C(void) {
     func_8006E7CC(gPlayerTwo, 1, 0);
     func_8006E7CC(gPlayerThree, 2, 0);
     func_8006E7CC(gPlayerFour, 3, 0);
-    if (gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN) {
+    if ((gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN || gPlayerCountSelection1 > 4)) {
         func_8006E7CC(gPlayerFive, 4, 0);
         func_8006E7CC(gPlayerSix, 5, 0);
         func_8006E7CC(gPlayerSeven, 6, 0);
@@ -568,7 +528,7 @@ void func_80021C78(void) {
     func_8006E848(gPlayerTwo, 1, 1);
     func_8006E848(gPlayerThree, 2, 1);
     func_8006E848(gPlayerFour, 3, 1);
-    if (gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN) {
+    if ((gActiveScreenMode != SCREEN_MODE_3P_4P_SPLITSCREEN || gPlayerCountSelection1 > 4)) {
         func_8006E848(gPlayerFive, 4, 1);
         func_8006E848(gPlayerSix, 5, 1);
         func_8006E848(gPlayerSeven, 6, 1);
@@ -766,6 +726,10 @@ void func_80022744(void) {
 }
 
 void func_8002276C(void) {
+    if (gPlayerCountSelection1 > 4) {
+        for (s32 i = 0; i < gPlayerCountSelection1; i++) func_80022A98(&gPlayers[i], i);
+        return;
+    }
     switch (gActiveScreenMode) { /* irregular */
         case SCREEN_MODE_1P:
             switch (gModeSelection) { /* switch 1; irregular */
@@ -1352,17 +1316,8 @@ void render_kart(Player* player, s8 playerId, s8 screenId, s8 flipOffset) {
     }
     load_kart_palette(player, playerId, screenId, D_801651D0[screenId][playerId]);
     gPlayerPalette = &gPlayerPalettesList[D_801651D0[screenId][playerId]][screenId][playerId];
-    // When screenId >= 2 (in 3/4 player mode), adjust indices to fit gEncodedKartTexture[2][2][8] dimensions
-    if ((screenId == 0) || (screenId == 1)) {
-        load_kart_texture(player, playerId, screenId, screenId, D_801651D0[screenId][playerId]);
-    } else {
-        load_kart_texture(player, playerId - 4, screenId, screenId - 1, D_801651D0[screenId][playerId]);
-    }
-    if ((screenId == 0) || (screenId == 1)) {
-        sKartTexture = gEncodedKartTexture[D_801651D0[screenId][playerId]][screenId][playerId].unk_00;
-    } else {
-        sKartTexture = gEncodedKartTexture[D_801651D0[screenId][playerId]][screenId - 1][playerId - 4].unk_00;
-    }
+    load_kart_texture(player, playerId, screenId, screenId, D_801651D0[screenId][playerId]);
+    sKartTexture = gEncodedKartTexture[D_801651D0[screenId][playerId]][screenId][playerId].unk_00;
     mtxf_translate_rotate(mtx, sp154, sp14C);
     mtxf_scale(mtx, gCharacterSize[player->characterId] * player->size);
     convert_to_fixed_point_matrix(GetKartMatrix(playerId + (screenId * 8)), mtx);
@@ -1471,12 +1426,7 @@ void render_ghost(Player* player, s8 playerId, s8 screenId, s8 flipOffset) {
     gPlayerPalette =
         (struct_D_802F1F80*) &gPlayerPalettesList[D_801651D0[screenId][playerId]][screenId][playerId * 0x100];
 #endif
-    if ((screenId == 0) || (screenId == 1)) {
-        sKartTexture = gEncodedKartTexture[D_801651D0[screenId][playerId]][screenId][playerId].unk_00;
-    } else {
-        sKartTexture = gEncodedKartTexture[D_801651D0[screenId][playerId]][screenId - 1][playerId - 4].unk_00;
-    }
-
+    sKartTexture = gEncodedKartTexture[D_801651D0[screenId][playerId]][screenId][playerId].unk_00;
     mtxf_translate_rotate(mtx, spDC, spD4);
     mtxf_scale(mtx, gCharacterSize[player->characterId] * player->size);
     convert_to_fixed_point_matrix(GetKartMatrix(playerId + (screenId * 8)), mtx);
@@ -1560,7 +1510,7 @@ void render_player_ice_reflection(Player* player, s8 playerId, s8 screenId, s8 f
     sp9C[0] = player->pos[0];
     sp9C[1] = player->unk_074 + (4.0f * player->size);
     sp9C[2] = player->pos[2];
-    if (!(player->unk_002 & (UNK_002_UNKNOWN_0x4 << (screenId * 4)))) {
+    if (!(player->unk_002 & (((u32) UNK_002_UNKNOWN_0x4) << (screenId * 4)))) {
         flipOffset = 8;
     } else {
         flipOffset = 0;
@@ -1602,13 +1552,13 @@ void render_player(Player* player, s8 playerId, s8 screenId) {
     OSMesg* sp34;
 
     update_wheel_palette(player, playerId, screenId, D_801651D0[screenId][playerId]);
-    if (!(player->unk_002 & (UNK_002_UNKNOWN_0x4 << (screenId * 4)))) {
+    if (!(player->unk_002 & (((u32) UNK_002_UNKNOWN_0x4) << (screenId * 4)))) {
         var_v1 = 0;
     } else {
         var_v1 = 8;
     }
     func_80023BF0(player, playerId, screenId, var_v1);
-    temp_t1 = SIDE_OF_KART << (screenId * 4);
+    temp_t1 = ((u32) SIDE_OF_KART) << (screenId * 4);
     if ((temp_t1 == (player->unk_002 & temp_t1)) && (player->collision.surfaceDistance[2] <= 50.0f) &&
         (player->surfaceType != ICE)) {
         if ((player->effects & BOO_EFFECT) == BOO_EFFECT) {

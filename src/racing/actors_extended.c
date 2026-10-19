@@ -979,7 +979,7 @@ void check_player_use_item(void) {
     struct Controller* controller;
     struct Controller* loopController;
 
-    for (player = &gPlayers[0], loopController = &gControllers[0], target = &gControllers[4]; loopController != target;
+    for (player = &gPlayers[0], loopController = &gControllers[0], target = &gControllers[gPlayerCountSelection1]; loopController != target;
          player++, loopController++) {
         controller = loopController;
         if (prevent_item_use(player) == false) {

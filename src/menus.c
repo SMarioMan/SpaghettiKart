@@ -34,8 +34,8 @@ f32 gIntroModelPosX;
 f32 gIntroModelPosY;
 f32 gIntroModelPosZ;
 s32 gMenuFadeType;
-s8 gCharacterGridSelections[4];   // Map from each player to current grid position (1-4 top, 5-8 bottom)
-bool gCharacterGridIsSelected[4]; // Sets true if a character is selected for each player
+s8 gCharacterGridSelections[8];   // Map from each player to current grid position (1-4 top, 5-8 bottom)
+bool gCharacterGridIsSelected[8]; // Sets true if a character is selected for each player
 s8 gSubMenuSelection;             // Map Select states, Options and Ghost Data text selection
 s8 gMainMenuSelection;
 s8 gPlayerSelectMenuSelection; // grid screen state?
@@ -65,7 +65,7 @@ s8 unref_D_8018EE0C; // Set to 0 but never referenced
 /** Data **/
 s32 gMenuSelection = HARBOUR_MASTERS_MENU;
 s32 gFadeModeSelection = FADE_MODE_NONE;
-s8 gCharacterSelections[4] = { MARIO, LUIGI, YOSHI, TOAD };
+s8 gCharacterSelections[8] = { MARIO, LUIGI, YOSHI, TOAD, DK, WARIO, PEACH, BOWSER };
 
 // The current row selected in the mode column for each player indexed
 // 0-1 1p / 0-2 2p´/ 0-1 3p / 0-1 4p
@@ -101,7 +101,7 @@ const s8 sScreenModePlayerTable[] = { SCREEN_MODE_1P, SCREEN_MODE_2P_SPLITSCREEN
 const s8 sScreenModePlayerCount[] = { 1, 2, 2, 3, 4 };
 
 // Set indexed slots numbers for one-two-three-four mode selection
-const s8 gPlayerModeSelection[] = { 1, 2, 1, 1 };
+const s8 gPlayerModeSelection[] = { 1, 2, 1, 1, 0, 0, 0, 0 };
 
 // Limit for each index column in one-two-three-four mode selection
 const s8 sGameModePlayerColumnDefault[][3] = {
@@ -109,6 +109,10 @@ const s8 sGameModePlayerColumnDefault[][3] = {
     { 2, 2, 0 }, // 2p (GP options, VS options, Battle)
     { 2, 0, 0 }, // 3p (VS options, Battle, ...)
     { 2, 0, 0 }, // 4p (VS options, Battle, ...)
+    { 2, 0, 0 },
+    { 2, 0, 0 },
+    { 2, 0, 0 },
+    { 2, 0, 0 },
 };
 
 // Limit for each index column in one-two-three-four mode selection
@@ -118,6 +122,10 @@ const s8 sGameModePlayerColumnExtra[][3] = {
     { 3, 3, 0 }, // 2p (GP options, VS options, Battle)
     { 3, 0, 0 }, // 3p (VS options, Battle, ...)
     { 3, 0, 0 }, // 4p (VS options, Battle, ...)
+    { 3, 0, 0 },
+    { 3, 0, 0 },
+    { 3, 0, 0 },
+    { 3, 0, 0 },
 };
 
 // Modes to select in one-two-three-four mode selection
@@ -126,6 +134,10 @@ const s32 gGameModePlayerSelection[][3] = {
     { GRAND_PRIX, VERSUS, BATTLE },          // 2p game modes
     { VERSUS, BATTLE, 0x00000000 },          // 3p game modes
     { VERSUS, BATTLE, 0x00000000 },          // 4p game modes
+    { VERSUS, 0, 0 },
+    { VERSUS, 0, 0 },
+    { VERSUS, 0, 0 },
+    { VERSUS, 0, 0 },
 };
 
 // Map from character grid position id to character id
@@ -151,7 +163,7 @@ const s8 unref_800F2BDC[4] = { 1, 0, 0, 0 };
 
 // Uses player count to set gScreenModeListIndex, the latter variable then selects a mode
 // from sScreenModePlayerTable, note the 2 is not set since that's for vertical 2p screen
-const s8 sScreenModeIdxFromPlayerMode[4] = { 0, 1, 3, 4 };
+const s8 sScreenModeIdxFromPlayerMode[8] = { 0, 1, 3, 4, 4, 4, 4, 4 };
 
 const union GameModePack sSoundMenuPack = { { SOUND_STEREO, SOUND_HEADPHONES, SOUND_SURROUND, SOUND_MONO } };
 
@@ -164,7 +176,7 @@ void update_menus(void) {
     u16 controllerIdx;
 
     if (gFadeModeSelection == FADE_MODE_NONE) {
-        for (controllerIdx = 0; controllerIdx < 4; controllerIdx++) {
+        for (controllerIdx = 0; controllerIdx < 8; controllerIdx++) {
             // Debug, quick jump through menus using the start button.
             if ((is_screen_being_faded() == 0) && (gEnableDebugMode) &&
                 ((gControllers[controllerIdx].buttonPressed & START_BUTTON) != 0)) {
@@ -1314,7 +1326,7 @@ void main_menu_act(struct Controller* controller, u16 controllerIdx) {
                 break;
             }
             case MAIN_MENU_PLAYER_SELECT: {
-                if ((btnAndStick & R_JPAD) && gPlayerCount < 4) {
+                if ((btnAndStick & R_JPAD) && gPlayerCount < 8) {
                     gPlayerCount += 1;
                     reset_cycle_flash_menu();
                     play_sound2(SOUND_MENU_CURSOR_MOVE);
@@ -1335,6 +1347,10 @@ void main_menu_act(struct Controller* controller, u16 controllerIdx) {
                         break;
                     case 3:
                     case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
                         gScreenModeSelection = SCREEN_MODE_3P_4P_SPLITSCREEN;
                         break;
                 }
@@ -1547,7 +1563,8 @@ bool is_character_spot_free(s32 gridId) {
     }
   
     for (size_t i = 0; i < ARRAY_COUNT(gCharacterGridSelections); i++) {
-        if (gridId == gCharacterGridSelections[i]) {
+        if (gridId == gCharacterGridSelections[i] &&
+            (gPlayerCount <= 4 || gCharacterGridIsSelected[i])) {
             return false;
         }
     }
@@ -1595,7 +1612,8 @@ void player_select_menu_act(struct Controller* controller, u16 controllerIdx) {
                     }
                 }
                 // L800B3684
-                if ((btnAndStick & A_BUTTON) && (gCharacterGridIsSelected[controllerIdx] == 0)) {
+                if ((btnAndStick & A_BUTTON) && (gCharacterGridIsSelected[controllerIdx] == 0) &&
+                    (gPlayerCount <= 4 || is_character_spot_free(gCharacterGridSelections[controllerIdx]))) {
                     gCharacterGridIsSelected[controllerIdx] = true;
                     i = sCharacterGridOrder[gCharacterGridSelections[controllerIdx] - 1];
                     func_800C90F4(controllerIdx, 0x2900800e + (i << 4));
@@ -1919,8 +1937,8 @@ void load_menu_states(s32 menuSelection) {
             if (gPlayerCount <= 0) {
                 gPlayerCount = 1;
             }
-            if (gPlayerCount >= 5) {
-                gPlayerCount = 4;
+            if (gPlayerCount > 8) {
+                gPlayerCount = 8;
             }
             gScreenModeListIndex = sScreenModeIdxFromPlayerMode[gPlayerCount - 1];
             func_800CA008(0, 0);

@@ -443,7 +443,7 @@ void func_80028F70(void) {
             }
             break;
         case SCREEN_MODE_3P_4P_SPLITSCREEN:
-            for (size_t i = 0; i < 4; i++) {
+            for (size_t i = 0; i < (size_t) gPlayerCountSelection1; i++) {
                 func_80028E70(&gPlayers[i], camera1, i, 0);
             }
             break;
@@ -527,10 +527,10 @@ void func_8002934C(Player* player, Camera* camera, s8 screenId, s8 playerId) {
     temp_a0 = (s16) player->unk_0D4[screenId] * sins((u16) temp_a0) + player->unk_0CC[screenId] * coss((u16) temp_a0);
     move_s16_towards(&player->unk_050[screenId], temp_a0, 0.5f);
     var_a0 = player->animFrameSelector[screenId];
-    player->unk_002 = player->unk_002 & (~(UNK_002_UNKNOWN_0x4 << (screenId * 4)));
+    player->unk_002 = player->unk_002 & (~(((u32) UNK_002_UNKNOWN_0x4) << (screenId * 4)));
     if (var_a0 >= 0x101) {
         var_a0 = 0x201 - var_a0;
-        player->unk_002 |= (UNK_002_UNKNOWN_0x4 << (screenId * 4));
+        player->unk_002 |= (((u32) UNK_002_UNKNOWN_0x4) << (screenId * 4));
     }
     if (((player->effects & 0x80) != 0x80) && ((player->effects & 0x40) != 0x40) &&
         ((player->effects & 0x80000) != 0x80000) && ((player->effects & 0x800000) != 0x800000) &&
@@ -595,29 +595,29 @@ void func_8002934C(Player* player, Camera* camera, s8 screenId, s8 playerId) {
         ((player->effects & HIT_BY_ITEM_EFFECT) == HIT_BY_ITEM_EFFECT) || (player->effects & 0x10000) ||
         (player->effects & 0x80) || (player->effects & 0x40)) {
 
-        player->unk_002 |= CHANGING_ANIMATION << (screenId * 4);
+        player->unk_002 |= ((u32) CHANGING_ANIMATION) << (screenId * 4);
         D_80165190[screenId][playerId] = 1;
 
         if ((player->effects & 0x80) || (player->effects & 0x40)) {
             if ((player->animFrameSelector[screenId] == gLastAnimFrameSelector[screenId][playerId]) &&
                 (player->animGroupSelector[screenId] == gLastAnimGroupSelector[screenId][playerId])) {
-                player->unk_002 &= ~(CHANGING_ANIMATION << (screenId * 4));
+                player->unk_002 &= ~(((u32) CHANGING_ANIMATION) << (screenId * 4));
                 D_80165190[screenId][playerId] = 1;
             }
         } else if (((player->unk_0A8) >> 8) == D_80165150[screenId][playerId] >> 8) {
-            player->unk_002 &= ~(CHANGING_ANIMATION << (screenId * 4));
+            player->unk_002 &= ~(((u32) CHANGING_ANIMATION) << (screenId * 4));
         }
     } else {
-        player->unk_002 |= CHANGING_ANIMATION << (screenId * 4);
+        player->unk_002 |= ((u32) CHANGING_ANIMATION) << (screenId * 4);
         if (((player->animFrameSelector[screenId] == gLastAnimFrameSelector[screenId][playerId]) &&
              (player->animGroupSelector[screenId] == gLastAnimGroupSelector[screenId][playerId])) &&
             ((D_80165190[screenId][playerId]) == 0)) {
-            player->unk_002 &= ~(CHANGING_ANIMATION << (screenId * 4));
+            player->unk_002 &= ~(((u32) CHANGING_ANIMATION) << (screenId * 4));
         }
     }
     temp_a0_2 = gLastAnimFrameSelector[screenId][playerId] - player->animFrameSelector[screenId];
     if ((temp_a0_2 >= 0x14) || (temp_a0_2 < (-0x13))) {
-        player->unk_002 |= CHANGING_ANIMATION << (screenId * 4);
+        player->unk_002 |= ((u32) CHANGING_ANIMATION) << (screenId * 4);
     }
 }
 
@@ -4406,6 +4406,12 @@ void handle_a_press_for_player_during_race(Player* player, struct Controller* co
 }
 
 void handle_a_press_for_all_players_during_race(void) {
+    if (gPlayerCountSelection1 > 4) {
+        for (s32 i = 0; i < gPlayerCountSelection1; i++) {
+            handle_a_press_for_player_during_race(&gPlayers[i], &gControllers[i], i);
+        }
+        return;
+    }
     u16 temp_v0_3;
     u16 temp_v0_4;
     u16 temp_v0_5;

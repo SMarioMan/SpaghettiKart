@@ -30,6 +30,8 @@ Vtx Sky::mSkyboxScreenOne[8] = { // D_802B8890
     { { { 0, 0, -1 }, 0, { 0, 0 }, { 0x78, 0xFF, 0x78, 0xFF } } },
     { { { 0, 120, -1 }, 0, { 0, 0 }, { 0x00, 0xDC, 0x00, 0xFF } } },
 };
+Vtx Sky::mExtraSkyboxes[4][8];
+
 
 Vtx Sky::mSkyboxScreenTwo[8] = { // D_802B8910
     { { { SCREEN_WIDTH, SCREEN_HEIGHT, -1 }, 0, { 0, 0 }, { 0xC8, 0xC8, 0xFF, 0xFF } } },
@@ -166,7 +168,10 @@ void Sky::Draw(ScreenContext* screen) { // func_802A4A0C(Vtx* vtx, ScreenContext
     f32 sp58;
 
     Vtx* vtx;
-    switch(screen - gScreenContexts) {
+    if (screen - gScreenContexts >= 4) {
+        vtx = mExtraSkyboxes[screen - gScreenContexts - 4];
+        std::copy_n(mSkyboxScreenOne, 8, vtx);
+    } else switch(screen - gScreenContexts) {
         case 0:
             vtx = mSkyboxScreenOne;
             break;
@@ -244,7 +249,9 @@ void Sky::DrawFloor(ScreenContext* screen) { // func_802A487C
     init_rdp();
 
     Vtx* vtx;
-    switch(screen - gScreenContexts) {
+    if (screen - gScreenContexts >= 4) {
+        vtx = mExtraSkyboxes[screen - gScreenContexts - 4];
+    } else switch(screen - gScreenContexts) {
         case 0:
             vtx = mSkyboxScreenOne;
             break;

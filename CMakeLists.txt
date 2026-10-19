@@ -159,6 +159,7 @@ endif()
 include(cmake/dependencies/common.cmake)
 
 include(cmake/dependencies/FindLib.cmake)
+include(cmake/LocalMultiplayer.cmake)
 
 # fmt's consteval format-string checking fails to compile under newer
 # AppleClang (Xcode 16+) with the spdlog/fmt versions in use (both vcpkg's on
@@ -314,3 +315,9 @@ endif()
 set(CPACK_PROJECT_CONFIG_FILE
     ${CMAKE_SOURCE_DIR}/cmake/configure-packaging.cmake)
 include(cmake/packaging.cmake)
+
+# Fast, ROM-independent regression check for the extended split-screen layout.
+add_executable(local-multiplayer-layout-test EXCLUDE_FROM_ALL tools/tests/local_multiplayer_layout.c)
+target_include_directories(local-multiplayer-layout-test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+enable_testing()
+add_test(NAME local-multiplayer-layout COMMAND local-multiplayer-layout-test)

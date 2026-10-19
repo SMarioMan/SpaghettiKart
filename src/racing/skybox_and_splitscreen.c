@@ -1,3 +1,4 @@
+#include "local_multiplayer.h"
 #include <libultraship.h>
 #include <macros.h>
 #include <libultra/gbi.h>
@@ -112,8 +113,10 @@ void race_set_viewport(ScreenContext* arg0) {
     if (lry > SCREEN_HEIGHT) {
         lry = SCREEN_HEIGHT;
     }
-    ulx = 0;
-    uly = 0;
+    ulx = screenStartX - screenWidth;
+    uly = screenStartY - screenHeight;
+    if (ulx < 0) ulx = 0;
+    if (uly < 0) uly = 0;
 
     gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, ulx, uly, lrx, lry);
 }
@@ -500,6 +503,10 @@ void func_802A4D18(void) {
 }
 
 void func_802A4EF4(void) {
+    if (gPlayerCountSelection1 > 4) {
+        for (s32 i = 0; i < gPlayerCountSelection1; i++) func_8001F394(&gPlayers[i]);
+        return;
+    }
     switch (gActiveScreenMode) {
         case SCREEN_MODE_1P:
             func_8001F394(gPlayerOne);
@@ -603,6 +610,15 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
         return;
     }
 
+    if (gPlayerCountSelection1 > 4) {
+        LocalPlayerViewport view = local_player_viewport(gPlayerCountSelection1, playerId);
+        screen->screenWidth = view.width;
+        screen->screenHeight = view.height;
+        screen->screenStartX = view.x + view.width / 2;
+        screen->screenStartY = view.y + view.height / 2;
+        gScreenAspect = (f32) view.width / view.height;
+    }
+
     switch(mode) {
         case RENDER_SCREEN_MODE_3P_4P_PLAYER_FOUR: // Blank screen
             if (gPlayerCountSelection1 == 3) {
@@ -618,7 +634,7 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
 
                 if ((CVarGetInteger("gDrawSky", true) == true)) {
                     CM_RaceDrawSky(screen, someId);
-                    func_80093A30(someId); // Fill box for thunderbolt?
+                    if (gPlayerCountSelection1 <= 4) func_80093A30(someId); // Legacy four-pane flash.
                 }
             }
             break;
@@ -627,7 +643,7 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
 
             if ((CVarGetInteger("gDrawSky", true) == true)) {
                 CM_RaceDrawSky(screen, someId);
-                func_80093A30(someId); // Fill box for thunderbolt?
+                if (gPlayerCountSelection1 <= 4) func_80093A30(someId); // Legacy four-pane flash.
             }
             break;
     }
@@ -702,6 +718,10 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
     if (CVarGetInteger("gDrawItemBoxes", true) == true) {
         render_item_boxes(screen);
     }
+    if (gPlayerCountSelection1 > 4) {
+        gNumScreens++;
+        return; // Extended HUD is drawn by the PC UI, independently for every viewport.
+    }
     render_player_snow_effect(camera);
     func_80058BF4(); // Setup texture modes
     if (D_800DC5B8 != 0) {
@@ -732,7 +752,7 @@ void set_screen(void) {
     s32* unk = &D_8015F790[0];
     s32 i;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 8; i++) {
         wrapper->controllers = controller;
 //        wrapper->camera = &cameras[i]; // Done in spawn_players now
         wrapper->player = player;
@@ -790,6 +810,7 @@ void set_screen(void) {
                 break;
         }
         player++;
+        controller++;
         // camera++;
         wrapper++;
         unk += 0x10;

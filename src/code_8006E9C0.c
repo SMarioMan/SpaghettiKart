@@ -438,10 +438,7 @@ void func_8006FA94(void) {
     D_8018D2BC = 0;
     D_8018D2B4 = D_8018D2BC;
     D_8018D2A4 = D_8018D2B4;
-    D_8018D2C8[0] = 0;
-    D_8018D2C8[1] = 0;
-    D_8018D2C8[2] = 0;
-    D_8018D2C8[3] = 0;
+    for (s32 player = 0; player < 8; player++) D_8018D2C8[player] = 0;
     D_8016581C = 0;
     D_8016580C = 0;
     D_80165814 = 0;
@@ -968,6 +965,13 @@ void init_hud_three_four_player(void) {
     playerHUD[PLAYER_ONE].unknownScaling = playerHUD[PLAYER_TWO].unknownScaling =
         playerHUD[PLAYER_THREE].unknownScaling = playerHUD[PLAYER_FOUR].unknownScaling = 1.5f;
 
+    for (s32 i = 4; i < gPlayerCountSelection1; i++) {
+        find_unused_obj_index(&gItemWindowObjectByPlayerId[i]);
+        init_item_window(gItemWindowObjectByPlayerId[i]);
+        playerHUD[i].rankScaling = 0.5f;
+        playerHUD[i].unknownScaling = 1.5f;
+        playerHUD[i].stagingPosition = gGPCurrentRaceRankByPlayerId[i];
+    }
     D_8018D158 = (s32) gPlayerCount;
     D_8018D3C4 = 0x00000014;
     D_8018D3BC = 0x00000010;

@@ -116,7 +116,7 @@ s32 D_8018D2B4;
 s16 gMinimapHeight;
 s32 D_8018D2BC;
 s16 gMinimapX[4];
-s32 D_8018D2C8[4];
+s32 D_8018D2C8[8];
 s16 gMinimapY[4];
 s16 gMinimapPlayerX;
 UNUSED s32 D_8018D2E4;

@@ -44,34 +44,34 @@ u32 D_80192CD0[256];
 struct_D_801930D0_entry D_801930D0[3];
 
 u8 D_800E9DA0 = 0;
-UNUSED s32 D_800E9DA4[] = { 0, 0, 0, 0 };
-s32 D_800E9DB4[] = { 0, 0, 0, 0 };
-f32 D_800E9DC4[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-f32 D_800E9DD4[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-f32 D_800E9DE4[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+UNUSED s32 D_800E9DA4[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+s32 D_800E9DB4[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+f32 D_800E9DC4[NUM_PLAYERS] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
+f32 D_800E9DD4[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+f32 D_800E9DE4[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 f32 D_800E9DF4[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-s32 D_800E9E14[] = { 0, 0, 0, 0 };
-s32 D_800E9E24[] = { 0, 0, 0, 0 };
+s32 D_800E9E14[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+s32 D_800E9E24[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 s32 D_800E9E34[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-f32 D_800E9E54[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-f32 D_800E9E64[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-s32 D_800E9E74[] = { 0, 0, 0, 0 };
-s32 D_800E9E84[] = { 0, 0, 0, 0 };
-u32 D_800E9E94[] = { 0, 0, 0, 0 };
-s32 D_800E9EA4[] = { 0, 0, 0, 0 };
-f32 D_800E9EB4[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-f32 D_800E9EC4[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-f32 D_800E9ED4[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-f32 D_800E9EE4[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-f32 D_800E9EF4[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+f32 D_800E9E54[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+f32 D_800E9E64[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+s32 D_800E9E74[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+s32 D_800E9E84[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+u32 D_800E9E94[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+s32 D_800E9EA4[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+f32 D_800E9EB4[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+f32 D_800E9EC4[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+f32 D_800E9ED4[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+f32 D_800E9EE4[NUM_PLAYERS] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+f32 D_800E9EF4[NUM_PLAYERS] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 f32 D_800E9F04[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
-f32 D_800E9F14[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+f32 D_800E9F14[NUM_PLAYERS] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
 u8 D_800E9F24[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 u8 D_800E9F2C[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 f32 D_800E9F34[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 f32 D_800E9F54[] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-u8 D_800E9F74[] = { 0, 0, 0, 0 };
-u8 D_800E9F78[] = { 0, 0, 0, 0 };
+u8 D_800E9F74[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+u8 D_800E9F78[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 struct Unk_800E9F7C D_800E9F7C[] = {
     { { 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, 0, 3800.0f, 3.4f, 0.4f, -1.0f, 0.4f, 1100.0f, 630.0f, 3600.0f, 1.0f },
     { { 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, 0, 3800.0f, 3.4f, 0.4f, -1.0f, 0.4f, 1100.0f, 630.0f, 3600.0f, 1.0f },
@@ -124,7 +124,7 @@ u8 D_800EA1E4 = 0;
 u8 D_800EA1E8 = 0;
 u8 D_800EA1EC = 0;
 u8 D_800EA1F0[] = { 0, 1, 2, 3 };
-u8 D_800EA1F4[] = { 0, 0, 0, 0 };
+u8 D_800EA1F4[NUM_PLAYERS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 char external_unused_string00[] = "Error : Queue is not empty ( %x ) \n";
 char external_unused_string01[] = "specchg error\n";
@@ -3268,6 +3268,9 @@ void func_800C9F90(u8 arg0) {
 }
 
 void func_800CA008(u8 arg0, u8 arg1) {
+    // The sequence mixer has four listener profiles. Additional local players
+    // share the 4P mix; their per-player sound state remains independent.
+    if (arg0 > 3) arg0 = 3;
     func_800C36C4(0, 0, 0x7F, 1);
     func_800C36C4(1, 0, 0x7F, 1);
 

@@ -248,10 +248,9 @@ void func_8008C6D0(Player* player, s8 arg1) {
     player->unk_236 = 0;
     player->unk_078 = 0;
     player->currentSpeed = 0.0f;
-    D_80165190[0][arg1] = 1;
-    D_80165190[1][arg1] = 1;
-    D_80165190[2][arg1] = 1;
-    D_80165190[3][arg1] = 1;
+    for (s32 screen = 0; screen < 8; screen++) {
+        D_80165190[screen][arg1] = 1;
+    }
     player->unk_042 = 0;
 }
 
@@ -270,10 +269,9 @@ void func_8008C73C(Player* player, s8 playerIndex) {
         // clang-format off
         player->unk_0C0 = 0; player->unk_07C = 0; player->unk_078 = 0; player->unk_0AE = player->rotation[1]; player->unk_0B2 = 2;
         // clang-format on
-        D_80165190[0][playerIndex] = 1;
-        D_80165190[1][playerIndex] = 1;
-        D_80165190[2][playerIndex] = 1;
-        D_80165190[3][playerIndex] = 1;
+        for (s32 screen = 0; screen < 8; screen++) {
+            D_80165190[screen][playerIndex] = 1;
+        }
         gPlayerCurrentSpeed[playerIndex] = player->currentSpeed;
         gTimerBoostTripleACombo[playerIndex] = 0;
         gIsPlayerTripleAButtonCombo[playerIndex] = false;
@@ -299,10 +297,9 @@ void func_8008C8C4(Player* player, s8 playerId) {
     player->unk_0C0 = 0;
     player->effects &= ~0x800;
 
-    D_80165190[0][playerId] = 1;
-    D_80165190[1][playerId] = 1;
-    D_80165190[2][playerId] = 1;
-    D_80165190[3][playerId] = 1;
+    for (s32 screen = 0; screen < 8; screen++) {
+        D_80165190[screen][playerId] = 1;
+    }
 
     player->unk_046 &= 0xFFBF;
 
@@ -696,10 +693,9 @@ void trigger_squish(Player* player, s8 arg1) {
         player->unk_DB4.unk10 = 4.5f;
         D_8018D990[arg1] = 0;
         player->effects &= ~0x08000010;
-        D_80165190[0][arg1] = 1;
-        D_80165190[1][arg1] = 1;
-        D_80165190[2][arg1] = 1;
-        D_80165190[3][arg1] = 1;
+        for (s32 screen = 0; screen < 8; screen++) {
+            D_80165190[screen][arg1] = 1;
+        }
         player->unk_D98 = 1;
         player->unk_D9C = 0.0f;
         player->unk_DA0 = 65.0f;
@@ -815,10 +811,9 @@ void apply_hit_effect(Player* player, s8 arg1) {
             player->effects |= 0x08000000;
             player->size = 1.0f;
             player->boundingBoxSize = gKartBoundingBoxSizeTable[player->characterId];
-            D_80165190[0][arg1] = 1;
-            D_80165190[1][arg1] = 1;
-            D_80165190[2][arg1] = 1;
-            D_80165190[3][arg1] = 1;
+            for (s32 screen = 0; screen < 8; screen++) {
+                D_80165190[screen][arg1] = 1;
+            }
 
             if ((player->type & PLAYER_HUMAN) != 0) {
                 func_800C90F4(arg1, (player->characterId * 0x10) + 0x29008008);
@@ -843,10 +838,9 @@ void trigger_lightning_strike(Player* player, s8 arg1) {
     player->unk_07C = 0;
     player->unk_078 = 0;
 
-    D_80165190[0][arg1] = 1;
-    D_80165190[1][arg1] = 1;
-    D_80165190[2][arg1] = 1;
-    D_80165190[3][arg1] = 1;
+    for (s32 screen = 0; screen < 8; screen++) {
+        D_80165190[screen][arg1] = 1;
+    }
 
     D_8018D920[arg1] = 0;
 
@@ -870,10 +864,9 @@ void apply_lightning_effect(Player* player, s8 arg1) {
         player->unk_0C0 = 0;
         player->rotation[1] = player->unk_0AE;
         remove_lightning_effect(player, arg1);
-        D_80165190[0][arg1] = 1;
-        D_80165190[1][arg1] = 1;
-        D_80165190[2][arg1] = 1;
-        D_80165190[3][arg1] = 1;
+        for (s32 screen = 0; screen < 8; screen++) {
+            D_80165190[screen][arg1] = 1;
+        }
         trigger_squish(player, arg1);
     } else if ((player->effects & 0x20000) == 0x20000) {
         player->rotation[1] -= 0x5B0;
@@ -887,10 +880,9 @@ void apply_lightning_effect(Player* player, s8 arg1) {
                 player->unk_07C = 0;
                 player->unk_0C0 = 0;
                 player->rotation[1] = player->unk_0AE;
-                D_80165190[0][arg1] = 1;
-                D_80165190[1][arg1] = 1;
-                D_80165190[2][arg1] = 1;
-                D_80165190[3][arg1] = 1;
+                for (s32 screen = 0; screen < 8; screen++) {
+                    D_80165190[screen][arg1] = 1;
+                }
             }
         }
         player_decelerate_alternative(player, 1.0f);
@@ -952,10 +944,9 @@ void func_8008E4A4(Player* player, s8 arg1) {
         player->effects &= ~0x01000000;
         player->unk_0A8 = 0;
         player->unk_236 = 0;
-        D_80165190[0][arg1] = 1;
-        D_80165190[1][arg1] = 1;
-        D_80165190[2][arg1] = 1;
-        D_80165190[3][arg1] = 1;
+        for (s32 screen = 0; screen < 8; screen++) {
+            D_80165190[screen][arg1] = 1;
+        }
         player->unk_042 = 0;
         player->type &= ~PLAYER_UNKNOWN_0x80;
 
@@ -973,10 +964,9 @@ void func_8008E4A4(Player* player, s8 arg1) {
             if (player->unk_236 == 0) {
                 player->effects &= ~0x01000000;
                 player->unk_236 = 0;
-                D_80165190[0][arg1] = 1;
-                D_80165190[1][arg1] = 1;
-                D_80165190[2][arg1] = 1;
-                D_80165190[3][arg1] = 1;
+                for (s32 screen = 0; screen < 8; screen++) {
+                    D_80165190[screen][arg1] = 1;
+                }
                 player->unk_042 = 0;
 
                 if (gModeSelection == BATTLE) {
@@ -1037,10 +1027,9 @@ void func_8008E884(Player* player, s8 arg1) {
     player->effects &= ~0x01000000;
     player->unk_0A8 = 0;
     player->unk_236 = 0;
-    D_80165190[0][arg1] = 1;
-    D_80165190[1][arg1] = 1;
-    D_80165190[2][arg1] = 1;
-    D_80165190[3][arg1] = 1;
+    for (s32 screen = 0; screen < 8; screen++) {
+        D_80165190[screen][arg1] = 1;
+    }
     player->unk_042 = 0;
 }
 
@@ -1084,10 +1073,9 @@ void apply_hit_by_item_effect(Player* player, s8 arg1) {
             if (player->unk_236 == 0) {
                 player->effects &= ~HIT_BY_ITEM_EFFECT;
                 player->unk_236 = 0;
-                D_80165190[0][arg1] = 1;
-                D_80165190[1][arg1] = 1;
-                D_80165190[2][arg1] = 1;
-                D_80165190[3][arg1] = 1;
+                for (s32 screen = 0; screen < 8; screen++) {
+                    D_80165190[screen][arg1] = 1;
+                }
                 player->unk_042 = 0;
                 if ((gIsPlayerTripleAButtonCombo[arg1] == true) && ((player->type & PLAYER_HUMAN) == PLAYER_HUMAN)) {
                     player->currentSpeed += 100.0f;
@@ -1138,10 +1126,9 @@ void remove_hit_by_item_effect(Player* player, s8 arg1) {
     player->effects &= ~HIT_BY_ITEM_EFFECT;
     player->unk_0A8 = 0;
     player->unk_236 = 0;
-    D_80165190[0][arg1] = 1;
-    D_80165190[1][arg1] = 1;
-    D_80165190[2][arg1] = 1;
-    D_80165190[3][arg1] = 1;
+    for (s32 screen = 0; screen < 8; screen++) {
+        D_80165190[screen][arg1] = 1;
+    }
     player->unk_042 = 0;
 }
 
@@ -1361,10 +1348,9 @@ void func_8008F5A4(Player* player, s8 arg1) {
     player->unk_078 = 0;
     player->currentSpeed = 0.0f;
 
-    D_80165190[0][arg1] = 1;
-    D_80165190[1][arg1] = 1;
-    D_80165190[2][arg1] = 1;
-    D_80165190[3][arg1] = 1;
+    for (s32 screen = 0; screen < 8; screen++) {
+        D_80165190[screen][arg1] = 1;
+    }
     player->unk_042 = 0;
 }
 

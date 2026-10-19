@@ -30,6 +30,7 @@ private:
     static Vtx mSkyboxScreenTwo[8];
     static Vtx mSkyboxScreenThree[8];
     static Vtx mSkyboxScreenFour[8];
+    static Vtx mExtraSkyboxes[4][8];
 
     std::vector<std::unique_ptr<SkyActor>> mSkyActors;
 };

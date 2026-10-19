@@ -29,7 +29,7 @@
 #include "ship/window/gui/resource/FontFactory.h"
 #include "libultraship/window/gui/InputEditorWindow.h"
 #include "libultraship/window/gui/GfxDebuggerWindow.h"
-#include "libultraship/controller/controldeck/ControlDeck.h"
+#include "EightPlayerControlDeck.h"
 #include "SpaghettiGui.h"
 
 #include "port/interpolation/FrameInterpolation.h"
@@ -167,7 +167,7 @@ GameEngine::GameEngine() {
                       { BTN_DUP, "DUp" },
                       { BTN_DDOWN, "DDown" },
                   });
-    auto controlDeck = std::make_shared<LUS::ControlDeck>(std::vector<CONTROLLERBUTTONS_T>(), defaultMappings, buttonNames);
+    auto controlDeck = std::make_shared<EightPlayerControlDeck>(std::vector<CONTROLLERBUTTONS_T>(), defaultMappings, buttonNames);
     const std::string assets_path = Ship::Context::LocateFileAcrossAppDirs(engine_asset_file);
     this->context->InitResourceManager({assets_path}, {}, 3); // without this line InitWindow fails in Gui::Init()
     this->context->InitConsole(); // without this line the GuiWindow constructor fails in ConsoleWindow::InitElement()

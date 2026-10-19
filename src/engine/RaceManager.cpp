@@ -134,6 +134,11 @@ void RaceManager::SetItemTables() {
             }
             break;
         case VERSUS:
+            if (gPlayerCountSelection1 > 4) {
+                humanTableName = "mk:human_grand_prix";
+                cpuTableName = "mk:cpu_grand_prix";
+                break;
+            }
             switch (gPlayerCountSelection1) {
                 case TWO_PLAYERS_SELECTED:
                     humanTableName = "mk:versus_2p";

@@ -156,7 +156,7 @@ bool D_801657F0;
 UNUSED s32 D_801657F4;
 bool D_801657F8;
 s32 D_801657FC;
-s8 D_80165800[2];
+s8 D_80165800[8];
 s32 D_80165804;
 s8 D_80165808;
 s32 D_8016580C;
@@ -231,7 +231,7 @@ Mtx D_80183D60;
 s32 D_80183DA0;
 f32 D_80183DA8[4];
 //! Lakitu?
-s32 gIndexLakituList[4];
+s32 gIndexLakituList[8];
 f32 D_80183DC8[4];
 //! Indexes for the objects associated with the Bomb Karts
 s32 gIndexObjectBombKart[NUM_BOMB_KARTS_MAX];
@@ -281,7 +281,7 @@ s32 indexObjectList2[32];
  * I'm also not certain about its dimensions
  * I think the entires in this array are way over-sized
  */
-const char* gLakituTextureBuffer[4][2];
+const char* gLakituTextureBuffer[8][2];
 /**
  * Boos in Banshee Boardwalk
  * Spawners for the 4 small fire breaths inside Bowser's Castle
@@ -294,7 +294,7 @@ const char** gLakituTexturePtr;
  */
 s32 indexObjectList4[32];
 //! Array of (4) Collisions?
-struct Collision D_8018C0B0[4];
+struct Collision D_8018C0B0[NUM_CAMERAS];
 /**
  * List of object list indices used for:
  *   Moles in Moo Moo Farm
@@ -331,7 +331,7 @@ s32 gObjectParticle4[gObjectParticle4_SIZE];
  * trees when you bonk into them
  */
 s32 gLeafParticle[gLeafParticle_SIZE];
-hud_player playerHUD[4];
+hud_player playerHUD[8];
 /**
  * List of object list indices used by the clouds and stars in some stages
  * Also used for snowflakes like gObjectParticle1? Not sure what's up with that
@@ -360,13 +360,13 @@ s16 gGPCurrentRaceCharacterIdByRank[8];
 s16 D_8018CF90;
 s16 D_8018CF98[8];
 s16 D_8018CFA8;
-s8 D_8018CFAC[4];
+s8 D_8018CFAC[8];
 s16 D_8018CFB0;
-s8 D_8018CFB4[4];
+s8 D_8018CFB4[8];
 s16 D_8018CFB8;
-s8 D_8018CFBC[4];
+s8 D_8018CFBC[8];
 s16 D_8018CFC0;
-s8 D_8018CFC4[4];
+s8 D_8018CFC4[8];
 s16 D_8018CFC8;
 f32 D_8018CFCC;
 s16 D_8018CFD0;
@@ -806,6 +806,7 @@ void func_800590D4(void) {
 }
 
 void func_800591B4(void) {
+    if (gPlayerCountSelection1 > 4) return; // Extended viewports use the PC HUD.
 
     if ((gHUDDisable == 0) && (D_800DC5B8 != 0)) {
         func_80057C60();
@@ -1087,6 +1088,7 @@ void func_80059AC8(void) {
                 break;
         }
 
+        for (s32 i = 4; i < gPlayerCountSelection1; i++) func_80059A88(i);
         CM_TickObjects60fps();
     }
 }
@@ -1202,6 +1204,14 @@ void func_80059D00(void) {
                     func_8005D1F4(3);
                 }
                 break;
+        }
+        if (gPlayerCountSelection1 > 4) {
+            for (s32 i = 3; i < gPlayerCountSelection1; i++) {
+                randomize_seed_from_controller(i);
+                func_80059820(i);
+                func_8005D0FC(i);
+                func_8005D1F4(i);
+            }
         }
         tick_objects();
         CM_TickObjects();
@@ -2420,20 +2430,7 @@ void func_8005CB60(s32 playerId, s32 lapCount) {
 
 void func_8005D0FC(s32 playerId) {
     if (gModeSelection != BATTLE) {
-        switch (playerId) { /* irregular */
-            case PLAYER_ONE:
-                func_8005CB60(playerId, gLapCountByPlayerId[PLAYER_ONE]);
-                break;
-            case PLAYER_TWO:
-                func_8005CB60(playerId, gLapCountByPlayerId[PLAYER_TWO]);
-                break;
-            case PLAYER_THREE:
-                func_8005CB60(playerId, gLapCountByPlayerId[PLAYER_THREE]);
-                break;
-            case PLAYER_FOUR:
-                func_8005CB60(playerId, gLapCountByPlayerId[PLAYER_FOUR]);
-                break;
-        }
+        func_8005CB60(playerId, gLapCountByPlayerId[playerId]);
     }
 }
 
@@ -6320,7 +6317,7 @@ void func_8006D194(Player* player, s8 arg1, s8 arg2) {
 
 void func_8006D474(Player* player, s8 playerId, s8 screenId) {
     s16 var_s2;
-    if ((player->unk_002 & (SIDE_OF_KART << (screenId * 4))) == (SIDE_OF_KART << (screenId * 4))) {
+    if ((player->unk_002 & (((u32) SIDE_OF_KART) << (screenId * 4))) == (((u32) SIDE_OF_KART) << (screenId * 4))) {
         for (var_s2 = 0; var_s2 < 10; var_s2++) {
             // @port: Tag the transform.
             FrameInterpolation_RecordOpenChild("smoke_dust", TAG_SMOKE_DUST((playerId << 8) | (screenId << 4) | var_s2));
@@ -6454,7 +6451,7 @@ void func_8006D474(Player* player, s8 playerId, s8 screenId) {
             FrameInterpolation_RecordCloseChild();
         }
     }
-    if ((gModeSelection == BATTLE) && (player->unk_002 & (UNK_002_UNKNOWN_0x2 << (screenId * 4)))) {
+    if ((gModeSelection == BATTLE) && (player->unk_002 & (((u32) UNK_002_UNKNOWN_0x2) << (screenId * 4)))) {
         func_8006BA94(player, playerId, screenId);
     }
 }
@@ -6463,7 +6460,7 @@ void func_8006DC54(Player* player, s8 playerId, s8 screenId) {
     s16 i;
     s32 bitwiseMask;
 
-    bitwiseMask = SIDE_OF_KART << (screenId * 4);
+    bitwiseMask = ((u32) SIDE_OF_KART) << (screenId * 4);
     if (bitwiseMask == (player->unk_002 & bitwiseMask)) {
         for (i = 0; i < 10; i++) {
             if (player->particlePool0[i].type == 7) {
@@ -6477,7 +6474,7 @@ void func_8006DD3C(Player* player, s8 playerId, s8 screenId) {
     s16 temp_s0;
     s32 temp_v0;
 
-    temp_v0 = SIDE_OF_KART << (screenId * 4);
+    temp_v0 = ((u32) SIDE_OF_KART) << (screenId * 4);
     if (temp_v0 == (player->unk_002 & temp_v0)) {
         for (temp_s0 = 0; temp_s0 < 10; ++temp_s0) {
             temp_v0 = player->particlePool0[temp_s0].type;
