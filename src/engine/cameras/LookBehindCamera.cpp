@@ -38,4 +38,10 @@ void LookBehindCamera::Tick() {
     }
 
     func_8001EE98(&gPlayers[_camera->playerId], _camera, _camera->cameraId);
+    // FOV effects are updated on the forward camera once per player.
+    Camera* forward = gScreenContexts[_camera->playerId].raceCamera;
+    if (forward != nullptr && forward != _camera) {
+        _camera->fieldOfView = forward->fieldOfView;
+        _camera->unk_B4 = forward->unk_B4;
+    }
 }

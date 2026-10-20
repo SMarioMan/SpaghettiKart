@@ -1630,6 +1630,7 @@ void player_select_menu_act(struct Controller* controller, u16 controllerIdx) {
 
                 if (!selected) {
                     gPlayerSelectMenuSelection = PLAYER_SELECT_MENU_OK;
+                    if (gPlayerCount > 4) play_sound2(0x4900900F);
                     reset_cycle_flash_menu();
                     gMenuTimingCounter = 0;
                 }
@@ -1734,7 +1735,7 @@ void player_select_menu_act(struct Controller* controller, u16 controllerIdx) {
             case 3:
                 if (controllerIdx == 0) {
                     gMenuTimingCounter++;
-                    if ((gMenuTimingCounter == 60) || ((gMenuTimingCounter % 300) == 0)) {
+                    if (gPlayerCount <= 4 && ((gMenuTimingCounter == 60) || ((gMenuTimingCounter % 300) == 0))) {
                         // L800B3A94
                         play_sound2(0x4900900F);
                     }
@@ -2054,6 +2055,8 @@ void load_menu_states(s32 menuSelection) {
                 }
                 gSubMenuSelection = SUB_MENU_MAP_SELECT_CUP;
             }
+            // Refresh previews immediately after changing between arena and race cups.
+            TrackBrowser_SetTrackFromCup();
             if (gGamestate != 0) {
                 func_800CA008(0, 0);
                 func_800CB2C4();

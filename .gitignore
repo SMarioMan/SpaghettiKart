@@ -136,3 +136,5 @@ compile_commands.json
 
 # Autonomous game integration evidence
 /course-completion-results/
+
+/native-validation-results/

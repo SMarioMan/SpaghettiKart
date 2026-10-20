@@ -612,6 +612,7 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
     }
 
     if (gPlayerCountSelection1 > 4) {
+        FrameInterpolation_RecordOpenChild("local_viewport", playerId);
         LocalPlayerViewport view = local_player_viewport(gPlayerCountSelection1, playerId);
         screen->screenWidth = view.width;
         screen->screenHeight = view.height;
@@ -725,6 +726,7 @@ void render_screens(ScreenContext* screen, s32 mode, s32 someId, s32 playerId) {
     if (gPlayerCountSelection1 > 4) {
         gNumScreens++;
         render_local_multiplayer_hud(playerId);
+        FrameInterpolation_RecordCloseChild();
         return;
     }
     render_player_snow_effect(camera);

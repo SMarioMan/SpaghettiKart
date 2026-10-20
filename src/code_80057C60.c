@@ -808,7 +808,16 @@ void func_800590D4(void) {
 }
 
 void func_800591B4(void) {
-    if (gPlayerCountSelection1 > 4) return; // Extended HUDs render within each viewport.
+    if (gPlayerCountSelection1 > 4) {
+        if (!gHUDDisable && gIsHUDVisible && gModeSelection != BATTLE && D_801657F0) {
+            FrameInterpolation_RecordOpenChild("shared_progress", 0);
+            func_80057C60();
+            gSPDisplayList(gDisplayListHead++, D_0D0076F8);
+            func_800514BC();
+            FrameInterpolation_RecordCloseChild();
+        }
+        return;
+    }
 
     if ((gHUDDisable == 0) && (D_800DC5B8 != 0)) {
         func_80057C60();
@@ -921,7 +930,7 @@ static Vtx sExtendedLapCount[4] = {
     {{{-16, 8, 0}, 0, {0, 512}, {255, 255, 255, 255}}},
 };
 static void draw_extended_lap_texture(s32 x, s32 y, u8* texture, Vtx* quad, s32 height) {
-    func_80042330(x, y, 0, 0.65f);
+    func_80042330(x, y, 0, 0.85f);
     gDPPipeSync(gDisplayListHead++);
     gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
     gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
@@ -939,6 +948,7 @@ static void draw_extended_lap_texture(s32 x, s32 y, u8* texture, Vtx* quad, s32 
 // state belongs to update_objects.c and must never be changed by rendering.
 void render_local_multiplayer_hud(s32 playerId) {
     if (gDemoMode || gHUDDisable || !CVarGetInteger("gDrawHUD", true)) return;
+    FrameInterpolation_RecordOpenChild("extended_hud", playerId);
     hud_player* hud = &playerHUD[playerId];
     Object* item = &gObjectList[gItemWindowObjectByPlayerId[playerId]];
     const s32 column = playerId % 4, row = playerId / 4;
@@ -958,29 +968,32 @@ void render_local_multiplayer_hud(s32 playerId) {
             if (progress < 0) progress = -progress;
             slide = (128 - progress) / 4;
         }
-        func_80047910(right - 16 + slide, top + 14, 0, 0.6f,
+        FrameInterpolation_RecordOpenChild("item_window", playerId);
+        func_80047910(right - 20 + slide, top + 19, 0, 0.85f,
                       (u8*) item->activeTLUT, (u8*) item->activeTexture,
                       (Vtx*) LOAD_ASSET(D_0D005C30), 40, 32, 40, 32);
+        FrameInterpolation_RecordCloseChild();
     }
     if (gModeSelection != BATTLE) {
         if (hud->unk_81) {
             s32 rank = hud->lapCount == 3 ? gGPCurrentRaceRankByPlayerId[playerId] : D_8018CF98[playerId];
             if (rank >= 0 && rank < NUM_PLAYERS) {
-                func_8004A384(left + 17, top + 105, 0, 0.22f, 255,
+                FrameInterpolation_RecordOpenChild("rank", playerId);
+                func_8004A384(left + 23, top + 103, 0, 0.32f, 255,
                               D_800E55F8[rank], 0, 255, (u8*) common_texture_hud_place[rank],
                               D_0D0068F0, 128, 64, 128, 64);
+                FrameInterpolation_RecordCloseChild();
             }
         }
-        draw_extended_lap_texture(right - 35, top + 106, (u8*) common_texture_hud_lap, sExtendedLapWord, 8);
+        FrameInterpolation_RecordOpenChild("lap", playerId);
+        draw_extended_lap_texture(right - 42, top + 105, (u8*) common_texture_hud_lap, sExtendedLapWord, 8);
         s32 lap = hud->alsoLapCount;
         if (lap < 0) lap = 0;
         if (lap > 2) lap = 2;
-        draw_extended_lap_texture(right - 13, top + 106, (u8*) gHudLapTextures[lap], sExtendedLapCount, 16);
+        draw_extended_lap_texture(right - 14, top + 105, (u8*) gHudLapTextures[lap], sExtendedLapCount, 16);
+        FrameInterpolation_RecordCloseChild();
     }
-    char label[] = "1P";
-    label[0] += playerId;
-    set_text_color(TEXT_YELLOW);
-    print_text_mode_1(left + 5, top + 13, label, 0, 0.45f, 0.45f);
+    FrameInterpolation_RecordCloseChild();
 }
 
 void render_hud_lap_3p_4p(s32 playerId) {
@@ -5152,6 +5165,9 @@ void func_80066BAC(Player* player, UNUSED s8 arg1, s16 arg2, s8 arg3) {
         spD4[1] = player->unk_048[arg3];
         spD4[2] = 0;
         func_800652D4(spDC, spD4, player->particlePool0[arg2].scale * player->size);
+        // Animation uses offsets 0 and 8 into sixteen contiguous vertices.
+        // Select the corresponding four-vertex rows without crossing a C row.
+        s32 vertexRow = player->particlePool0[arg2].red == 8 ? 2 : 0;
         if (player->particlePool0[arg2].red == 0) {
             gSPDisplayList(gDisplayListHead++, D_0D008DB8);
             gDPSetCombineMode(gDisplayListHead++, G_CC_MODULATEIDECALA, G_CC_MODULATEIDECALA);
@@ -5159,12 +5175,12 @@ void func_80066BAC(Player* player, UNUSED s8 arg1, s16 arg2, s8 arg3) {
             gDPLoadTextureBlock(gDisplayListHead++, gTextureLoadedLightningBolt0, G_IM_FMT_IA, G_IM_SIZ_8b, 32, 64, 0,
                                 G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
                                 G_TX_NOLOD, G_TX_NOLOD);
-            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[0][player->particlePool0[arg2].red], 4, 0);
+            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[vertexRow][0], 4, 0);
             gSPDisplayList(gDisplayListHead++, common_square_plain_render);
             gDPLoadTextureBlock(gDisplayListHead++, gTextureLoadedLightningBolt1, G_IM_FMT_IA, G_IM_SIZ_8b, 32, 64, 0,
                                 G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
                                 G_TX_NOLOD, G_TX_NOLOD);
-            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[1][player->particlePool0[arg2].red], 4, 0);
+            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[vertexRow + 1][0], 4, 0);
             gSPDisplayList(gDisplayListHead++, D_0D008DA0);
         } else {
             gSPDisplayList(gDisplayListHead++, D_0D008DB8);
@@ -5173,12 +5189,12 @@ void func_80066BAC(Player* player, UNUSED s8 arg1, s16 arg2, s8 arg3) {
             gDPLoadTextureBlock(gDisplayListHead++, gTextureLoadedLightningBolt1, G_IM_FMT_IA, G_IM_SIZ_8b, 32, 64, 0,
                                 G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
                                 G_TX_NOLOD, G_TX_NOLOD);
-            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[0][player->particlePool0[arg2].red], 4, 0);
+            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[vertexRow][0], 4, 0);
             gSPDisplayList(gDisplayListHead++, common_square_plain_render);
             gDPLoadTextureBlock(gDisplayListHead++, gTextureLoadedLightningBolt0, G_IM_FMT_IA, G_IM_SIZ_8b, 32, 64, 0,
                                 G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
                                 G_TX_NOLOD, G_TX_NOLOD);
-            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[1][player->particlePool0[arg2].red], 4, 0);
+            gSPVertex(gDisplayListHead++, (uintptr_t) &D_800E8900a[vertexRow + 1][0], 4, 0);
             gSPDisplayList(gDisplayListHead++, D_0D008DA0);
         }
         gMatrixEffectCount += 1;

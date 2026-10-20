@@ -1,4 +1,5 @@
 #include <libultraship.h>
+#include <string.h>
 #include "mixer.h"
 #include <macros.h>
 #include "audio/synthesis.h"
@@ -486,18 +487,23 @@ Acmd* synthesis_process_note(s32 noteIndex, struct NoteSubEu* noteSubEu, struct 
                     aligned = ALIGN(((loopInfo_2 * 9) + 16), 4);
                     addr = (0x540 - aligned); // DMEM_ADDR_COMPRESSED_ADPCM_DATA
 
-                    // Bounds check: clamp read size to not exceed sample buffer
-                    if (audioBookSample->sampleSize > 0) {
-                        s32 readOffset = (var_a0_2 - var_t2) - sampleAddr;
-                        if (readOffset < 0) readOffset = 0;
-                        s32 maxReadSize = (s32)audioBookSample->sampleSize - readOffset;
-                        if (maxReadSize < 0) maxReadSize = 0;
-                        if (aligned > maxReadSize) {
-                            aligned = maxReadSize;
-                        }
+                    // The software DMA rounds lengths down to 16 bytes. Clamping
+                    // a tail read to the exact sample length can drop a complete
+                    // ADPCM frame and decode stale DMEM as a predictor index.
+                    // Preserve the aligned transfer and pad only unavailable bytes.
+                    s32 readOffset = (var_a0_2 - var_t2) - sampleAddr;
+                    if (audioBookSample->sampleSize > 0 &&
+                        (readOffset < 0 || readOffset + aligned > (s32) audioBookSample->sampleSize)) {
+                        u8 sampleTail[0x540] = { 0 };
+                        s32 validOffset = MAX(readOffset, 0);
+                        s32 prefix = validOffset - readOffset;
+                        s32 available = MAX((s32) audioBookSample->sampleSize - validOffset, 0);
+                        s32 copySize = MIN(available, aligned - prefix);
+                        if (copySize > 0) memcpy(sampleTail + prefix, sampleAddr + validOffset, copySize);
+                        aLoadBuffer(cmd++, VIRTUAL_TO_PHYSICAL2(sampleTail), addr, aligned);
+                    } else {
+                        aLoadBuffer(cmd++, VIRTUAL_TO_PHYSICAL2(var_a0_2 - var_t2), addr, aligned);
                     }
-
-                    aLoadBuffer(cmd++, VIRTUAL_TO_PHYSICAL2(var_a0_2 - var_t2), addr, aligned);
                 } else {
                     s1 = 0; // ?
                     var_t2 = 0;

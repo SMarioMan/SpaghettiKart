@@ -127,6 +127,16 @@ if(SPAGHETTIKART_IOS)
 endif()
 
 add_executable(${PROJECT_NAME} ${ALL_FILES})
+option(ENABLE_MULTIPLAYER_BOUNDS_CHECKS "Instrument game array bounds and enable C++ container assertions" OFF)
+if(ENABLE_MULTIPLAYER_BOUNDS_CHECKS)
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    message(FATAL_ERROR "Multiplayer bounds checks require GCC or Clang")
+  endif()
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:C,CXX>:-fsanitize=bounds;-fno-sanitize-recover=bounds>")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE _GLIBCXX_ASSERTIONS)
+  target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=bounds -fno-sanitize-recover=bounds)
+endif()
 target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
                           ${CMAKE_CURRENT_SOURCE_DIR}/include

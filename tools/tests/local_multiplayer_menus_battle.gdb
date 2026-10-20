@@ -62,7 +62,34 @@ if gMenuSelection != 13 || gPlayerCount != 8 || gModeSelection != 3
 printf "FAIL: track select lost eight-player selection (menu %d)\n", gMenuSelection
 quit 2
 end
+if !IsBigDonut()
+printf "FAIL: battle preview did not refresh on entry\n"
+quit 2
+end
 printf "PASS: eight players select Battle and proceed to arena selection\n"
+end
+if $frame == 230 || $frame == 285 || $frame == 290 || $frame == 350
+set gControllers[0].buttonPressed = 16384
+end
+if $frame == 355
+set gControllers[0].buttonPressed = 2048
+end
+if $frame == 360 || $frame == 370 || $frame == 380 || $frame == 450
+set gControllers[0].buttonPressed = 32768
+end
+if $frame == 440
+set $i = 0
+while $i < 8
+set gControllers[$i].buttonPressed = 32768
+set $i = $i + 1
+end
+end
+if $frame == 505
+if gMenuSelection != 13 || gModeSelection != 2 || GetCup() == GetBattleCup() || !IsLuigiRaceway()
+printf "FAIL: Battle-to-VS preview stayed stale (menu=%d mode=%d)\n", gMenuSelection, gModeSelection
+quit 2
+end
+printf "PASS: Battle-to-VS previews refresh before cursor movement\n"
 quit
 end
 continue

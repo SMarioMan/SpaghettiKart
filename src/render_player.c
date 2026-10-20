@@ -1269,6 +1269,17 @@ extern kart_texture_t** gKartTextureTable0[];
 extern kart_texture_t** gKartTextureTable1[];
 extern u8** gKartTextureTumbles[];
 
+// Display-list vertices are consumed after all views have been emitted. Keep
+// each view's deformed kart mesh alive instead of sharing the last camera's data.
+static Vtx sKartViewVertices[3][8][8][4][8];
+static Vtx* kart_vertices(s8 playerId, s8 screenId, s8 flipOffset, s32 layer) {
+    Vtx* source = &gPlayerVtx[playerId][flipOffset];
+    if (gPlayerCountSelection1 <= 4) return source;
+    Vtx* destination = sKartViewVertices[sRenderingFramebuffer][screenId][playerId][layer];
+    for (s32 i = 0; i < 8; i++) destination[i] = source[i];
+    return destination;
+}
+
 void render_kart(Player* player, s8 playerId, s8 screenId, s8 flipOffset) {
     UNUSED s32 pad;
     Mat4 mtx;
@@ -1380,7 +1391,7 @@ void render_kart(Player* player, s8 playerId, s8 screenId, s8 flipOffset) {
     gDPLoadTextureBlock(gDisplayListHead++, sKartTexture, G_IM_FMT_CI, G_IM_SIZ_8b, 64, 64, 0,
                         G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
                         G_TX_NOLOD);
-    gSPVertex(gDisplayListHead++, (uintptr_t) &gPlayerVtx[playerId][flipOffset], 8, 0);
+    gSPVertex(gDisplayListHead++, (uintptr_t) kart_vertices(playerId, screenId, flipOffset, 0), 8, 0);
     gSP2Triangles(gDisplayListHead++, 0, 1, 2, 0, 0, 2, 3, 0);
     gSP2Triangles(gDisplayListHead++, 4, 5, 6, 4, 4, 6, 7, 4);
     gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
@@ -1447,7 +1458,7 @@ void render_ghost(Player* player, s8 playerId, s8 screenId, s8 flipOffset) {
     gDPLoadTextureBlock(gDisplayListHead++, sKartTexture, G_IM_FMT_CI, G_IM_SIZ_8b, 64, 64, 0,
                         G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
                         G_TX_NOLOD);
-    gSPVertex(gDisplayListHead++, (uintptr_t) &gPlayerVtx[playerId][flipOffset], 8, 0);
+    gSPVertex(gDisplayListHead++, (uintptr_t) kart_vertices(playerId, screenId, flipOffset, 1), 8, 0);
     gSP2Triangles(gDisplayListHead++, 0, 1, 2, 0, 0, 2, 3, 0);
     gSP2Triangles(gDisplayListHead++, 4, 5, 6, 4, 4, 6, 7, 4);
     gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
@@ -1490,7 +1501,7 @@ void func_80025DE8(Player* player, s8 playerId, s8 screenId, s8 flipOffset) {
     gDPLoadTextureBlock(gDisplayListHead++, sKartTexture, G_IM_FMT_CI, G_IM_SIZ_8b, 64, 64, 0,
                         G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
                         G_TX_NOLOD);
-    gSPVertex(gDisplayListHead++, (uintptr_t) &gPlayerVtx[playerId][flipOffset], 8, 0);
+    gSPVertex(gDisplayListHead++, (uintptr_t) kart_vertices(playerId, screenId, flipOffset, 2), 8, 0);
     gSP2Triangles(gDisplayListHead++, 0, 1, 2, 0, 0, 2, 3, 0);
     gSP2Triangles(gDisplayListHead++, 4, 5, 6, 4, 4, 6, 7, 4);
     gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
@@ -1535,7 +1546,7 @@ void render_player_ice_reflection(Player* player, s8 playerId, s8 screenId, s8 f
     gDPLoadTextureBlock(gDisplayListHead++, sKartTexture, G_IM_FMT_CI, G_IM_SIZ_8b, 64, 64, 0,
                         G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
                         G_TX_NOLOD);
-    gSPVertex(gDisplayListHead++, (uintptr_t) &gPlayerVtx[playerId][flipOffset], 8, 0);
+    gSPVertex(gDisplayListHead++, (uintptr_t) kart_vertices(playerId, screenId, flipOffset, 3), 8, 0);
     gSP2Triangles(gDisplayListHead++, 0, 1, 2, 0, 0, 2, 3, 0);
     gSP2Triangles(gDisplayListHead++, 4, 5, 6, 4, 4, 6, 7, 4);
     gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);

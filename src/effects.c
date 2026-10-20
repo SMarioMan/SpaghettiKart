@@ -1592,6 +1592,8 @@ void func_8008FF08(Player* player, s8 playerId) {
 
 void func_80090178(Player* player, s8 playerId, Vec3f arg2, Vec3f arg3) {
     u16 test;
+    // Battle has four native rescue anchors, shared by paired players.
+    const s32 anchor = playerId % 4;
     TrackPathPoint* temp_v1;
     f32 spF8[4] = { 0.0f, 0.0f, -700.0f, 700.0f };
     f32 spE8[4] = { 700.0f, -700.0f, 0.0f, 0.0f };
@@ -1623,33 +1625,33 @@ void func_80090178(Player* player, s8 playerId, Vec3f arg2, Vec3f arg3) {
         arg3[1] = temp_v1->y;
         arg3[2] = temp_v1->z;
     } else if (IsBlockFort()) {
-        arg2[0] = spF8[playerId];
+        arg2[0] = spF8[anchor];
         arg2[1] = 0.0f;
-        arg2[2] = spE8[playerId];
-        arg3[0] = spD8[playerId];
+        arg2[2] = spE8[anchor];
+        arg3[0] = spD8[anchor];
         arg3[1] = 0.0f;
-        arg3[2] = spC8[playerId];
+        arg3[2] = spC8[anchor];
     } else if (IsSkyscraper()) {
-        arg2[0] = spB8[playerId];
+        arg2[0] = spB8[anchor];
         arg2[1] = 480.0f;
-        arg2[2] = spA8[playerId];
-        arg3[0] = sp98[playerId];
+        arg2[2] = spA8[anchor];
+        arg3[0] = sp98[anchor];
         arg3[1] = 480.0f;
-        arg3[2] = sp88[playerId];
+        arg3[2] = sp88[anchor];
     } else if (IsDoubleDeck()) {
-        arg2[0] = sp78[playerId];
+        arg2[0] = sp78[anchor];
         arg2[1] = 0.0f;
-        arg2[2] = sp68[playerId];
-        arg3[0] = sp58[playerId];
+        arg2[2] = sp68[anchor];
+        arg3[0] = sp58[anchor];
         arg3[1] = 0.0f;
-        arg3[2] = sp48[playerId];
+        arg3[2] = sp48[anchor];
     } else if (IsBigDonut()) {
-        arg2[0] = sp38[playerId];
+        arg2[0] = sp38[anchor];
         arg2[1] = 200.0f;
-        arg2[2] = sp28[playerId];
-        arg3[0] = sp18[playerId];
+        arg2[2] = sp28[anchor];
+        arg3[0] = sp18[anchor];
         arg3[1] = 200.0f;
-        arg3[2] = sp08[playerId];
+        arg3[2] = sp08[anchor];
     } else {
         test = player->nearestPathPointId;
         temp_v1 = &gTrackPaths[0][test];
@@ -1661,6 +1663,21 @@ void func_80090178(Player* player, s8 playerId, Vec3f arg2, Vec3f arg3) {
         arg3[1] = temp_v1->y;
         arg3[2] = temp_v1->z;
     }
+    if (gModeSelection == BATTLE && playerId >= 4) {
+        // Keep paired respawns apart just as at the starting grid.
+        f32 dx = arg3[0] - arg2[0];
+        f32 dz = arg3[2] - arg2[2];
+        f32 distance = sqrtf(dx * dx + dz * dz);
+        if (distance > 0.001f) {
+            f32 offsetX = dz * 35.0f / distance;
+            f32 offsetZ = -dx * 35.0f / distance;
+            arg2[0] += offsetX;
+            arg2[2] += offsetZ;
+            arg3[0] += offsetX;
+            arg3[2] += offsetZ;
+        }
+    }
+
 }
 
 void func_80090778(Player* player) {

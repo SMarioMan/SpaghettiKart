@@ -5352,14 +5352,15 @@ void func_80014DE4(s32 cameraIndex) {
 f32 func_80014EE4(f32 arg0, s32 arg1) {
     f32 temp_f0;
     f64 temp_f2;
+    const f32 framing = gPlayerCountSelection1 > 4 ? 20.0f : 0.0f;
 
     temp_f0 = D_80164498[arg1];
     switch (D_80164678[arg1]) { /* irregular */
         default:
-            arg0 = 40.0f;
+            arg0 = 40.0f + framing;
             break;
         case 0:
-            temp_f2 = 40.0;
+            temp_f2 = 40.0 + framing;
             temp_f2 += temp_f0;
             if (temp_f2 < arg0) {
                 arg0 -= 1.0;
@@ -5376,7 +5377,7 @@ f32 func_80014EE4(f32 arg0, s32 arg1) {
             }
             break;
         case 1:
-            temp_f2 = 60.0;
+            temp_f2 = 60.0 + framing;
             temp_f2 += temp_f0;
             if (arg0 < temp_f2) {
                 arg0 += 1.0;
@@ -5393,7 +5394,7 @@ f32 func_80014EE4(f32 arg0, s32 arg1) {
             }
             break;
         case 3:
-            temp_f2 = 60.0;
+            temp_f2 = 60.0 + framing;
             temp_f2 += temp_f0;
             if (arg0 < temp_f2) {
                 arg0 += 0.5;
@@ -5409,7 +5410,7 @@ f32 func_80014EE4(f32 arg0, s32 arg1) {
             }
             break;
         case 2:
-            temp_f2 = 60.0;
+            temp_f2 = 60.0 + framing;
             temp_f2 += temp_f0;
             if (arg0 < temp_f2) {
                 arg0 += 1.0;
@@ -6608,18 +6609,22 @@ void func_80019B50(s32 cameraIndex, u16 arg1) {
 }
 
 void func_80019C50(s32 arg0) {
+    if (arg0 < 0 || arg0 >= NUM_CAMERAS) return;
+    s32 playerId = cameras[arg0].playerId;
+    if (playerId < 0 || playerId >= NUM_PLAYERS) return;
+    bool primary = gScreenContexts[playerId].raceCamera == &cameras[arg0];
     switch (D_80164678[arg0]) {
         case 0:
             if (D_80164608[arg0] == 1) {
                 D_80164678[arg0] = 1;
-                func_800C9060(arg0, SOUND_ARG_LOAD(0x19, 0x00, 0x90, 0x4F));
+                if (primary) func_800C9060(playerId, SOUND_ARG_LOAD(0x19, 0x00, 0x90, 0x4F));
                 D_80164670[arg0] = D_80164678[arg0];
             }
             break;
         case 1:
             if (D_80164608[arg0] == 1) {
                 D_80164678[arg0] = 0;
-                func_800C9060(arg0, SOUND_ARG_LOAD(0x19, 0x00, 0x90, 0x50));
+                if (primary) func_800C9060(playerId, SOUND_ARG_LOAD(0x19, 0x00, 0x90, 0x50));
                 D_80164670[arg0] = D_80164678[arg0];
             }
             break;
@@ -6627,35 +6632,25 @@ void func_80019C50(s32 arg0) {
 }
 
 void look_behind_toggle(s32 cameraIdx) {
-    static bool lookBehindActive[NUM_CAMERAS] = {0};
-    bool pressed = gControllers[cameraIdx].button & L_CBUTTONS; // button held
-    ScreenContext* screenCtx = NULL;
-
-    if (CVarGetInteger("gLookBehind", false) == false) {
-        return;
-    }
-
-    if (cameras[cameraIdx].playerId < 0 || cameras[cameraIdx].playerId >= 4) {
-        return;
-    }
-
-    // Get the screen context
-    screenCtx = &gScreenContexts[cameras[cameraIdx].playerId];
-
+    static bool lookBehindActive[NUM_PLAYERS] = {0};
+    if (!CVarGetInteger("gLookBehind", false) || cameraIdx < 0 || cameraIdx >= NUM_CAMERAS) return;
+    s32 playerId = cameras[cameraIdx].playerId;
+    if (playerId < 0 || playerId >= gPlayerCountSelection1 || playerId >= NUM_PLAYERS) return;
+    ScreenContext* screenCtx = &gScreenContexts[playerId];
+    // Both forward and rear cameras tick. Only the forward camera owns input.
+    if (screenCtx->raceCamera != &cameras[cameraIdx]) return;
+    bool pressed = (gControllers[playerId].button & L_CBUTTONS) != 0;
     if (gRaceState == RACE_IN_PROGRESS) {
-        // Flip the camera
-        if (pressed && !lookBehindActive[cameraIdx]) {
+        if (pressed && !lookBehindActive[playerId]) {
             screenCtx->pendingCamera = screenCtx->lookBehindCamera;
-            lookBehindActive[cameraIdx] = true;
-        // Unflip the camera
-        } else if (!pressed && lookBehindActive[cameraIdx]) {
+            lookBehindActive[playerId] = true;
+        } else if (!pressed && lookBehindActive[playerId]) {
             screenCtx->pendingCamera = screenCtx->raceCamera;
-            lookBehindActive[cameraIdx] = false;
+            lookBehindActive[playerId] = false;
         }
-    } else if (lookBehindActive[cameraIdx]) {
-        // Restore the original camera
+    } else if (lookBehindActive[playerId]) {
         screenCtx->pendingCamera = screenCtx->raceCamera;
-        lookBehindActive[cameraIdx] = false;
+        lookBehindActive[playerId] = false;
     }
 }
 
@@ -6724,7 +6719,10 @@ void func_80019ED0(void) {
 void func_80019FB4(s32 cameraId) {
     struct Controller* controller;
 
-    controller = &gControllerOne[cameraId];
+    if (cameraId < 0 || cameraId >= NUM_CAMERAS) return;
+    s32 playerId = cameras[cameraId].playerId;
+    if (playerId < 0 || playerId >= NUM_PLAYERS) return;
+    controller = &gControllers[playerId];
     if (controller->buttonPressed & 2) {
         D_801645D0[cameraId] += 1;
     } else {

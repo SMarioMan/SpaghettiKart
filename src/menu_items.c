@@ -26,6 +26,7 @@
 #include "update_objects.h"
 #include "replays.h"
 #include <assets/models/common_data.h>
+#include <assets/textures/common_data.h>
 #include "textures.h"
 #include "racing/math_util.h"
 #include "save_data.h"
@@ -84,6 +85,12 @@ Gfx* sGfxPtr;
 s32 gNumD_8018E768Entries;
 struct_8018E768_entry D_8018E768[D_8018E768_SIZE];
 s32 gCycleFlashMenu;
+// Slot 4 in the native arrays belongs to full-screen menu transitions.
+// Extended matches keep rescue fades separate so player five cannot alias it.
+static struct {
+    s8 type;
+    u32 duration, time;
+} sExtendedRescueFade[NUM_PLAYERS];
 s8 gTransitionType[5];
 u32 gTransitionDuration[5];
 u32 gCurrentTransitionTime[5];
@@ -1418,6 +1425,7 @@ void func_80091B78(void) {
     for (i = 0; i < 5; i++) {
         gTransitionType[i] = 0;
     }
+    memset(sExtendedRescueFade, 0, sizeof(sExtendedRescueFade));
 
     for (i = 0; i < 4; i++) {
         D_8018E838[i] = 0;
@@ -1514,6 +1522,7 @@ void func_80091FA4(void) {
     for (i = 0; i < 5; i++) {
         gTransitionType[i] = 0;
     }
+    memset(sExtendedRescueFade, 0, sizeof(sExtendedRescueFade));
 
     for (i = 0; i < 4; i++) {
         D_8018E838[i] = 0;
@@ -2411,7 +2420,11 @@ void func_80093C98(s32 arg0) {
     handle_menus_special();
     if (arg0 == 0) {
         func_800A54EC();
-        func_8009CA6C(4);
+        if (gPlayerCountSelection1 > 4 && gGamestate == RACING) {
+            func_8009CA2C();
+        } else {
+            func_8009CA6C(4);
+        }
         D_80165754 = gMatrixEffectCount;
         gMatrixEffectCount = 0;
         // ClearEffectsMatrixPool();
@@ -2436,6 +2449,7 @@ void func_80093E60(void) {
     for (i = 0; i < 5; i++) {
         gTransitionType[i] = 0;
     }
+    memset(sExtendedRescueFade, 0, sizeof(sExtendedRescueFade));
 
     for (i = 0; i < 4; i++) {
         D_8018E838[i] = 0;
@@ -2705,7 +2719,7 @@ void setup_menus(void) {
             case CHARACTER_SELECT_MENU:
                 add_menu_item(CHARACTER_SELECT_BACKGROUND, 0, 0, MENU_ITEM_PRIORITY_2);
                 add_menu_item(CHARACTER_SELECT_MENU_PLAYER_SELECT_BANNER, 0, 0, MENU_ITEM_PRIORITY_6);
-                add_menu_item(CHARACTER_SELECT_MENU_OK, 0, 0, MENU_ITEM_PRIORITY_6);
+                add_menu_item(CHARACTER_SELECT_MENU_OK, 0, 0, gPlayerCount > 4 ? MENU_ITEM_PRIORITY_F : MENU_ITEM_PRIORITY_6);
                 add_menu_item(CHARACTER_SELECT_MENU_MARIO, 0, 0, MENU_ITEM_PRIORITY_8);
                 add_menu_item(CHARACTER_SELECT_MENU_LUIGI, 0, 0, MENU_ITEM_PRIORITY_8);
                 add_menu_item(CHARACTER_SELECT_MENU_TOAD, 0, 0, MENU_ITEM_PRIORITY_6);
@@ -4939,6 +4953,30 @@ void func_8009C918(void) {
 void func_8009CA2C(void) {
     s32 var_s0;
 
+    if (gPlayerCountSelection1 > 4 && gGamestate == RACING) {
+        for (var_s0 = 0; var_s0 < gPlayerCountSelection1; var_s0++) {
+            s32 type = sExtendedRescueFade[var_s0].type;
+            if (type == 0 || type == 6) continue;
+            u32 duration = sExtendedRescueFade[var_s0].duration;
+            u32 time = sExtendedRescueFade[var_s0].time;
+            s32 alpha = type == 5 ? 255 : MIN(time * 255 / duration, 255);
+            if (type == 1) alpha = 255 - alpha;
+            f32 width = 60.0f * OTRGetAspectRatio();
+            s32 left = OTRGetDimensionFromLeftEdge(0) + (var_s0 % 4) * width;
+            s32 right = OTRGetDimensionFromLeftEdge(0) + (var_s0 % 4 + 1) * width;
+            s32 top = (var_s0 / 4) * 120;
+            gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gSPDisplayList(gDisplayListHead++, D_02008008);
+            gDPSetPrimColor(gDisplayListHead++, 0, 0, 0, 0, 0, alpha);
+            gDPFillWideRectangle(gDisplayListHead++, left, top, right, top + 120);
+            gDPPipeSync(gDisplayListHead++);
+            if (!gIsGamePaused && type != 5 && ++sExtendedRescueFade[var_s0].time >= duration) {
+                sExtendedRescueFade[var_s0].type = type == 1 ? 6 : 5;
+            }
+        }
+        func_8009CA6C(4);
+        return;
+    }
     for (var_s0 = 0; var_s0 < 5; var_s0++) {
         func_8009CA6C(var_s0);
     }
@@ -5692,6 +5730,16 @@ void func_8009E000(s32 arg0) {
 void func_8009E020(s32 arg0, s32 arg1) {
     s32 temp;
 
+    if (gPlayerCountSelection1 > 4) {
+        if (arg0 < 0 || arg0 >= NUM_PLAYERS) return;
+        if (sExtendedRescueFade[arg0].type != 1 && sExtendedRescueFade[arg0].type != 6) {
+            sExtendedRescueFade[arg0].type = 1;
+            sExtendedRescueFade[arg0].duration = arg1 < 1 ? 1 : MIN(arg1, 255);
+            sExtendedRescueFade[arg0].time = 0;
+        }
+        return;
+    }
+
     if (arg1 == 0) {
         arg1 = 1;
     }
@@ -5709,6 +5757,16 @@ void func_8009E020(s32 arg0, s32 arg1) {
 
 void func_8009E088(s32 arg0, s32 arg1) {
     s32 temp;
+
+    if (gPlayerCountSelection1 > 4) {
+        if (arg0 < 0 || arg0 >= NUM_PLAYERS) return;
+        if (sExtendedRescueFade[arg0].type != 2 && sExtendedRescueFade[arg0].type != 5) {
+            sExtendedRescueFade[arg0].type = 2;
+            sExtendedRescueFade[arg0].duration = arg1 < 1 ? 1 : MIN(arg1, 255);
+            sExtendedRescueFade[arg0].time = 0;
+        }
+        return;
+    }
 
     if (arg1 == 0) {
         arg1 = 1;
@@ -6605,6 +6663,10 @@ void render_menus(MenuItem* arg0) {
                 }
                 break;
             case CHARACTER_SELECT_MENU_OK:
+                if (gPlayerCount > 4) {
+                    arg0->column = 5; // Texture already carries the native (264, 202) offset.
+                    arg0->row = 20;
+                }
                 func_800A8564(arg0);
                 gDisplayListHead =
                     func_8009BC9C(gDisplayListHead, D_02004B74, arg0->column, arg0->row, 2, arg0->param1);
@@ -9544,36 +9606,41 @@ void handle_menus_with_pri_arg(s32 priSpecial) {
 
 static void render_extended_character_cursors(void) {
     if (gGamestate == RACING || gMenuSelection != CHARACTER_SELECT_MENU || gPlayerCount <= 4) return;
-    for (s32 i = 0; i < gPlayerCount; i++) {
-        s32 cell = gCharacterGridSelections[i] - 1;
+    for (s32 player = 0; player < gPlayerCount; player++) {
+        s32 cell = gCharacterGridSelections[player] - 1;
         if (cell < 0 || cell >= 8) continue;
-        MenuItem* portrait = get_menu_item_character(cell);
-        RGBA16* color = &D_800E74A8[i % 4];
-        s32 x = portrait->column, y = portrait->row;
-        // One stable frame per portrait, even while several cursors share it.
-        // Keep each player label anchored to the portrait while confirming.
-        s32 owner = i;
-        for (s32 j = 0; j < i; j++) {
-            if (gCharacterGridSelections[j] == cell + 1) owner = j;
+        MenuItem cursor = *get_menu_item_character(cell);
+        s32 brightness = 255;
+        if (gCharacterGridIsSelected[player]) {
+            s32 phase = gGlobalTimer % 16;
+            brightness = 191 + (phase < 8 ? phase * 8 : 128 - phase * 8);
         }
-        if (owner == i) {
-            gDisplayListHead = draw_box_fill(gDisplayListHead, x, y, x + 64, y + 1,
-                                             color->red, color->green, color->blue, 255);
-            gDisplayListHead = draw_box_fill(gDisplayListHead, x, y + 78, x + 64, y + 79,
-                                             color->red, color->green, color->blue, 255);
-            gDisplayListHead = draw_box_fill(gDisplayListHead, x, y, x + 1, y + 79,
-                                             color->red, color->green, color->blue, 255);
-            gDisplayListHead = draw_box_fill(gDisplayListHead, x + 63, y, x + 64, y + 79,
-                                             color->red, color->green, color->blue, 255);
+        if (player < 4) {
+            // Preserve the original textured highlights, including their badges.
+            render_cursor_player(&cursor, player, brightness);
+        } else {
+            // The shared native highlight mask supplies the same bevel and shape.
+            // The new badge uses the game's number font rather than a substitute frame.
+            MenuTexture border[2] = { seg2_P1_border_texture[0], { 0 } };
+            RGBA16* color = &D_800E74A8[player % 4];
+            load_menu_img(border);
+            gDPSetPrimColor(gDisplayListHead++, 0, 0, color->red, color->green, color->blue, 255);
+            gDPSetEnvColor(gDisplayListHead++, brightness, brightness, brightness, 0);
+            gDisplayListHead = render_menu_textures(gDisplayListHead, border, cursor.column, cursor.row);
+            MenuTexture* native = gMenuTexturesBorderPlayer[player % 4];
+            // Retain the exact native outline, omitting its baked-in 1–4 badge.
+            gSPDisplayList(gDisplayListHead++, D_02007788);
+            gDisplayListHead = func_80095E10(gDisplayListHead, 0, 1024, 1024,
+                0, 0, 64, 48, cursor.column, cursor.row, native[1].textureData, 64, 64);
+            gDisplayListHead = func_80095E10(gDisplayListHead, 0, 1024, 1024,
+                14, 48, 50, 16, cursor.column + 14, cursor.row + 48, native[1].textureData, 64, 64);
+            gDisplayListHead = func_80095E10(gDisplayListHead, 0, 1024, 1024,
+                0, 48, 2, 16, cursor.column, cursor.row + 48, native[1].textureData, 64, 64);
+            func_80047910(cursor.column + 7, cursor.row + 56, 0, 0.85f,
+                (u8*) common_tlut_hud_type_C_rank_font,
+                (u8*) common_texture_hud_type_C_rank_font[player],
+                (Vtx*) LOAD_ASSET(common_vtx_rectangle), 16, 16, 16, 16);
         }
-        char label[] = "1P";
-        label[0] += i;
-        set_text_color(gCharacterGridIsSelected[i] ? TEXT_YELLOW : TEXT_BLUE);
-        s32 slot = 0;
-        for (s32 j = 0; j < i; j++) {
-            if (gCharacterGridSelections[j] == cell + 1) slot++;
-        }
-        print_text_mode_1(x + 4 + (slot % 4) * 14, y + 66 + (slot / 4) * 10, label, 0, 0.45f, 0.45f);
     }
 }
 

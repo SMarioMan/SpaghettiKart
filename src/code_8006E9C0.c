@@ -251,7 +251,7 @@ void func_8006F8CC(void) {
         D_801657F0 = 0;
         D_801657E8 = 1;
         D_80165800[0] = D_80165800[1] = 1;
-        if (gPlayerCount == 4) {
+        if (gPlayerCount >= 4) {
             if (gModeSelection != 3) {
                 gHUDModes = 1;
                 D_801657F0 = 1;
