@@ -159,6 +159,11 @@ void camera_init(Vec3f pos, s16 rot, u32 mode, s32 cameraId) {
                     break;
             }
 
+            if (gPlayerCountSelection1 > 4) {
+                camera->unk_30[1] *= 1.25f;
+                camera->unk_30[2] *= 1.5f;
+            }
+
             func_80014DE4(cameraId);
 
             if (D_80164678[cameraId] == 0) {
@@ -300,6 +305,11 @@ void freecam_init(Vec3f pos, s16 rot, u32 mode, s32 cameraId) {
                         camera->unk_3C[2] = 18.0f;
                     }
                     break;
+            }
+
+            if (gPlayerCountSelection1 > 4) {
+                camera->unk_30[1] *= 1.25f;
+                camera->unk_30[2] *= 1.5f;
             }
 
             //func_80014DE4(cameraId);

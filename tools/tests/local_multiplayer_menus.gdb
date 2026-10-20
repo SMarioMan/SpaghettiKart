@@ -10,6 +10,7 @@ set gGamestate = 7
 set gMenuFadeType = 0
 delete breakpoints
 set $frame = 0
+set $cursorSounds = 0
 break update_menus
 commands
 silent
@@ -33,7 +34,18 @@ printf "FAIL: could not enter character select (menu %d)\n", gMenuSelection
 quit 2
 end
 end
+if $frame == 156
+set gControllers[0].buttonPressed = 256
+end
+if $frame == 157
+set gControllers[0].buttonPressed = 512
+end
 if $frame == 160
+if $cursorSounds != 2
+printf "FAIL: idle cursor sound or missing movement sound (%d)\n", $cursorSounds
+quit 2
+end
+printf "PASS: character cursor sounds only on movement\n"
 set $i = 0
 while $i < 8
 set gControllers[$i].buttonPressed = 32768
@@ -61,6 +73,14 @@ quit 2
 end
 printf "PASS: eight players proceed to track selection\n"
 quit
+end
+continue
+end
+break src/audio/external.c:2923
+commands
+silent
+if $frame >= 155 && $frame < 160 && soundBits == 0x49008000
+set $cursorSounds = $cursorSounds + 1
 end
 continue
 end

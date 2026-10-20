@@ -71,3 +71,41 @@ runner requires every expected outcome and fails on a debugger signal, missing
 result, or timeout. Use `--suite counts`, `--suite menus`, `--suite workflow`,
 `--suite battle`, `--suite menus_battle`, `--suite sky`, or `--suite baseline` to
 run an individual group.
+
+## Autonomous course completion
+
+The completion harness runs all 16 stock tracks and all four battle arenas with
+5–8 player viewports. Use a Debug build with GDB, extracted game assets, and an
+X display (Xvfb works):
+
+```sh
+DISPLAY=:99 python3 tools/tests/run_course_completion.py build/Spaghettify \
+  --players 8 --output /tmp/kart-completion --capture
+```
+
+`--capture` additionally requires `xdotool` and ImageMagick's `import`; use an
+isolated display so other windows do not obscure screenshots. It saves 16:9
+images during roulette, driving, and results. JSON reports and debugger logs
+are written to the output directory; failures produce a nonzero exit code.
+Reports are replaced on each run, so use separate directories for comparisons.
+
+`--courses 0,15,16,19` selects a subset. Indices follow cup order: Mushroom 0–3,
+Flower 4–7, Star 8–11, Special 12–15, Battle 16–19. Repeat with `--players 5`,
+`6`, and `7` to cover every extended player count. Per-course frame watchdogs
+and an overall wall-clock timeout catch stalls rather than reporting success.
+
+Every course exercises the normal item pickup entry point for every player and
+requires multiple roulette textures and a nonempty awarded item. This isolates
+HUD animation from item-box placement/collision; it does not claim to test
+physical collection of every box. Races enable native CPU steering while
+retaining human players, views, and HUDs, then accelerate logic ticks. The
+harness never writes positions, lap counts, ranks, or race completion state;
+it requires the normal penultimate-finisher transition and results screen.
+Battle scenarios call the normal balloon damage entry point three times per
+opponent, then require elimination, the surviving player's victory, and results.
+They test arena lifecycle and damage handling, rather than autonomous weapon
+combat. The report records the driving method explicitly.
+
+Screenshots provide visual regression evidence; passing gameplay assertions
+alone does not prove the absence of intermittent flicker. Physical controller
+playtesting remains necessary for input feel and human camera preferences.

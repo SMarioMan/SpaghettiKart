@@ -212,6 +212,10 @@ void Sky::Draw(ScreenContext* screen) { // func_802A4A0C(Vtx* vtx, ScreenContext
     vtx[7].v.ob[1] = temp_t5;
 
     init_rdp();
+    // init_rdp restores the full-canvas scissor; each sky must stay in its pane.
+    race_set_viewport(screen);
+    gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+    gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
     gDPSetRenderMode(gDisplayListHead++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
     gSPClearGeometryMode(gDisplayListHead++, G_ZBUFFER | G_LIGHTING);
     gSPPerspNormalize(gDisplayListHead++, 0xFFFF);
@@ -228,6 +232,10 @@ void Sky::Draw(ScreenContext* screen) { // func_802A4A0C(Vtx* vtx, ScreenContext
 
 void Sky::DrawFloor(ScreenContext* screen) { // func_802A487C
     init_rdp();
+    // init_rdp restores the full-canvas scissor; each sky must stay in its pane.
+    race_set_viewport(screen);
+    gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+    gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
 
     Vtx* vtx;
     if (screen - gScreenContexts >= 4) {

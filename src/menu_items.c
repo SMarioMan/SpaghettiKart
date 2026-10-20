@@ -4650,16 +4650,20 @@ Gfx* print_letter(Gfx* arg0, MenuTexture* glyphTexture, f32 arg2, f32 arg3, s32 
     f32 thing1;
     MenuTexture* var_s0;
 
+    const f32 leftEdge = (gGamestate == RACING && gPlayerCountSelection1 > 4)
+                             ? OTRGetDimensionFromLeftEdge(0) : 0.0f;
+    const f32 rightEdge = (gGamestate == RACING && gPlayerCountSelection1 > 4)
+                              ? OTRGetDimensionFromRightEdge(320) : 320.0f;
     var_s0 = glyphTexture;
     while (var_s0->textureData != NULL) {
         var_v0 = 0;
 
         thing0 = var_s0->dX + arg2;
-        if (thing0 > 320.0f) {
+        if (thing0 > rightEdge) {
             var_v0 = 1;
         }
         thing0 += var_s0->width * scaleX;
-        if (thing0 < 0.0f) {
+        if (thing0 < leftEdge) {
             var_v0 += 1;
         }
         thing1 = var_s0->dY + arg3;
@@ -9546,22 +9550,30 @@ static void render_extended_character_cursors(void) {
         MenuItem* portrait = get_menu_item_character(cell);
         RGBA16* color = &D_800E74A8[i % 4];
         s32 x = portrait->column, y = portrait->row;
-        // Use the original cursor palette and native font for all eight ports.
-        // Nested outlines keep shared, unconfirmed selections visible.
-        s32 inset = 1 + i / 4;
-        s32 alpha = gCharacterGridIsSelected[i] ? 255 : 160 + (gGlobalTimer % 16) * 6;
-        gDisplayListHead = draw_box_fill(gDisplayListHead, x + inset, y + inset, x + 64 - inset, y + inset + 1,
-                                         color->red, color->green, color->blue, alpha);
-        gDisplayListHead = draw_box_fill(gDisplayListHead, x + inset, y + 78 - inset, x + 64 - inset, y + 79 - inset,
-                                         color->red, color->green, color->blue, alpha);
-        gDisplayListHead = draw_box_fill(gDisplayListHead, x + inset, y + inset, x + inset + 1, y + 79 - inset,
-                                         color->red, color->green, color->blue, alpha);
-        gDisplayListHead = draw_box_fill(gDisplayListHead, x + 63 - inset, y + inset, x + 64 - inset, y + 79 - inset,
-                                         color->red, color->green, color->blue, alpha);
+        // One stable frame per portrait, even while several cursors share it.
+        // Keep each player label anchored to the portrait while confirming.
+        s32 owner = i;
+        for (s32 j = 0; j < i; j++) {
+            if (gCharacterGridSelections[j] == cell + 1) owner = j;
+        }
+        if (owner == i) {
+            gDisplayListHead = draw_box_fill(gDisplayListHead, x, y, x + 64, y + 1,
+                                             color->red, color->green, color->blue, 255);
+            gDisplayListHead = draw_box_fill(gDisplayListHead, x, y + 78, x + 64, y + 79,
+                                             color->red, color->green, color->blue, 255);
+            gDisplayListHead = draw_box_fill(gDisplayListHead, x, y, x + 1, y + 79,
+                                             color->red, color->green, color->blue, 255);
+            gDisplayListHead = draw_box_fill(gDisplayListHead, x + 63, y, x + 64, y + 79,
+                                             color->red, color->green, color->blue, 255);
+        }
         char label[] = "1P";
         label[0] += i;
         set_text_color(gCharacterGridIsSelected[i] ? TEXT_YELLOW : TEXT_BLUE);
-        print_text_mode_1(x + 4 + (i % 4) * 14, y + 13 + (i / 4) * 12, label, 0, 0.32f, 0.5f);
+        s32 slot = 0;
+        for (s32 j = 0; j < i; j++) {
+            if (gCharacterGridSelections[j] == cell + 1) slot++;
+        }
+        print_text_mode_1(x + 4 + (slot % 4) * 14, y + 66 + (slot / 4) * 10, label, 0, 0.45f, 0.45f);
     }
 }
 

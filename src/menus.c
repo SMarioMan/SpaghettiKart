@@ -1723,7 +1723,7 @@ void player_select_menu_act(struct Controller* controller, u16 controllerIdx) {
                         savedSelection = savedSelection + 4;
                     }
                     // L800B3A30
-                    if (is_character_spot_free(savedSelection)) {
+                    if (savedSelection != gCharacterGridSelections[controllerIdx] && is_character_spot_free(savedSelection)) {
                         gCharacterGridSelections[controllerIdx] = savedSelection;
                         play_sound2(0x49008000);
                     }

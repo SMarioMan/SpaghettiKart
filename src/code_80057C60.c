@@ -39,6 +39,7 @@
 #include "data/some_data.h"
 #include <assets/textures/some_data.h>
 #include "port/Game.h"
+#include "port/Engine.h"
 #include "engine/Matrix.h"
 #include "engine/editor/Editor.h"
 #include "port/interpolation/FrameInterpolation.h"
@@ -905,8 +906,8 @@ void render_hud_2p_vertical_player_two(void) {
     }
 }
 
-// Texture rectangles use full-screen coordinates. Use native textured geometry
-// here so both the HUD and its clipping follow the player's viewport.
+// Use native textured geometry for lap sprites so their scale matches the
+// other HUD elements in the canvas projection.
 static Vtx sExtendedLapWord[4] = {
     {{{-16, -4, 0}, 0, {0, 0}, {255, 255, 255, 255}}},
     {{{16, -4, 0}, 0, {1024, 0}, {255, 255, 255, 255}}},
@@ -920,7 +921,7 @@ static Vtx sExtendedLapCount[4] = {
     {{{-16, 8, 0}, 0, {0, 512}, {255, 255, 255, 255}}},
 };
 static void draw_extended_lap_texture(s32 x, s32 y, u8* texture, Vtx* quad, s32 height) {
-    func_80042330(x, y, 0, 1.0f);
+    func_80042330(x, y, 0, 0.65f);
     gDPPipeSync(gDisplayListHead++);
     gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
     gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
@@ -933,33 +934,53 @@ static void draw_extended_lap_texture(s32 x, s32 y, u8* texture, Vtx* quad, s32 
     gSPTexture(gDisplayListHead++, 1, 1, 0, G_TX_RENDERTILE, G_OFF);
 }
 
-// Native HUD geometry and textures, projected into the current player's pane.
+// Draw at the canvas aspect ratio, clipped to the pane. Projecting a 320x240
+// HUD into an 80x120 viewport squashes every sprite horizontally. Animation
+// state belongs to update_objects.c and must never be changed by rendering.
 void render_local_multiplayer_hud(s32 playerId) {
     if (gDemoMode || gHUDDisable || !CVarGetInteger("gDrawHUD", true)) return;
     hud_player* hud = &playerHUD[playerId];
+    Object* item = &gObjectList[gItemWindowObjectByPlayerId[playerId]];
+    const s32 column = playerId % 4, row = playerId / 4;
+    const f32 width = 60.0f * OTRGetAspectRatio();
+    const s32 left = OTRGetDimensionFromLeftEdge(0) + column * width;
+    const s32 right = OTRGetDimensionFromLeftEdge(0) + (column + 1) * width;
+    const s32 top = row * 120;
+    gSPViewport(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(D_802B8880));
+    gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE,
+                 column * 80, top, (column + 1) * 80, top + 120);
     gSPDisplayList(gDisplayListHead++, D_0D0076F8);
     set_matrix_hud_screen();
-    hud->itemBoxX = 272;
-    hud->itemBoxY = 28;
-    hud->slideItemBoxX = hud->slideItemBoxY = 0;
-    hud->unknownScaling = 0.75f;
-    func_8004E6C4(playerId);
+    if (item->state >= 2) {
+        s32 slide = 0;
+        if (item->state == 2 || item->state == 11) {
+            s32 progress = hud->slideItemBoxX;
+            if (progress < 0) progress = -progress;
+            slide = (128 - progress) / 4;
+        }
+        func_80047910(right - 16 + slide, top + 14, 0, 0.6f,
+                      (u8*) item->activeTLUT, (u8*) item->activeTexture,
+                      (Vtx*) LOAD_ASSET(D_0D005C30), 40, 32, 40, 32);
+    }
     if (gModeSelection != BATTLE) {
-        hud->rankX = 38;
-        hud->rankY = 208;
-        hud->slideRankX = hud->slideRankY = 0;
-        hud->rankScaling = 0.25f;
-        func_8004E800(playerId);
-        draw_extended_lap_texture(228, 202, (u8*) common_texture_hud_lap, sExtendedLapWord, 8);
+        if (hud->unk_81) {
+            s32 rank = hud->lapCount == 3 ? gGPCurrentRaceRankByPlayerId[playerId] : D_8018CF98[playerId];
+            if (rank >= 0 && rank < NUM_PLAYERS) {
+                func_8004A384(left + 17, top + 105, 0, 0.22f, 255,
+                              D_800E55F8[rank], 0, 255, (u8*) common_texture_hud_place[rank],
+                              D_0D0068F0, 128, 64, 128, 64);
+            }
+        }
+        draw_extended_lap_texture(right - 35, top + 106, (u8*) common_texture_hud_lap, sExtendedLapWord, 8);
         s32 lap = hud->alsoLapCount;
         if (lap < 0) lap = 0;
         if (lap > 2) lap = 2;
-        draw_extended_lap_texture(252, 216, (u8*) gHudLapTextures[lap], sExtendedLapCount, 16);
+        draw_extended_lap_texture(right - 13, top + 106, (u8*) gHudLapTextures[lap], sExtendedLapCount, 16);
     }
     char label[] = "1P";
     label[0] += playerId;
     set_text_color(TEXT_YELLOW);
-    print_text_mode_1(16, 24, label, 0, 0.65f, 0.65f);
+    print_text_mode_1(left + 5, top + 13, label, 0, 0.45f, 0.45f);
 }
 
 void render_hud_lap_3p_4p(s32 playerId) {
